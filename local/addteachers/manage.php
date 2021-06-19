@@ -1,0 +1,172 @@
+<?php
+// This file is part of Moodle Add Users Plugin
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Readme file for local customisations
+ *
+ * @package    local_addteachers
+ * @copyright  2021 AstoSoft (https://astosoft.pl)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+require_once(__DIR__ . '/../../config.php');
+require_once($CFG->dirroot . '/local/addteachers/classes/form/edit.php');
+require_once($CFG->dirroot . '/group/lib.php');
+require_once($CFG->dirroot . '/local/addteachers/vendor/llagerlof/moodlerest/MoodleRest.php');
+
+global $USER;
+
+$PAGE->set_url(new moodle_url('/local/addteachers/manage.php'));
+$PAGE->set_context(\context_system::instance());
+$PAGE->set_title('Add students');
+
+$templatecontext = (object) [
+  'texttodisplay' => 'Text to display'
+];
+
+echo $OUTPUT->header();
+
+echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
+
+$uform = new edit();
+
+//Form processing and displaying is done here
+if ($uform->is_cancelled()) {
+  //Handle form cancel operation, if cancel button is present on form
+  \core\notification::add('Formularz został wyczyszczony!', \core\output\notification::NOTIFY_WARNING);
+  $uform->display();
+} else if ($fromform = $uform->get_data()) {
+  //In this case you process validated data. $mform->get_data() returns data posted in form.
+  //print_r($fromform);
+  if ((int) $fromform->group == 0) {
+    \core\notification::add('Proszę wybrać grupę!', \core\output\notification::NOTIFY_ERROR);
+    $uform->display();
+  } else {
+    $groups = groups_get_my_groups();
+    //print_r($groups);
+    $courseID   = 0;
+    $groupID    = explode('-', $fromform->group)[0];
+    $groupingID = explode('-', $fromform->group)[1];
+
+    foreach ($groups as $group) {
+      if ($group->id == $groupID) {
+        $courseID = $group->courseid;
+      }
+    }
+
+    // Find schools from 'dziennik'
+    foreach ($groups as $group) {
+      if ($group->courseid == '10') {
+        $context = context_course::instance($group->courseid);
+        $roles = get_user_roles($context, $USER->id, true);
+        $role = key($roles);
+        $rolename = $roles[$role]->shortname;
+        if ($rolename == 'teacherkeg') {
+          $groupings[] = $group->name;
+        }
+      }
+    }
+
+    $tokenurl = $CFG->wwwroot . '/login/token.php?username=wiktor&password=!53W7qbec&service=kegmanager';
+
+    $tokenresponse = file_get_contents($tokenurl);
+
+    $tokenobject = json_decode($tokenresponse);
+
+    if (!empty($tokenobject->error)) {
+      \core\notification::add($tokenobject->error, \core\output\notification::NOTIFY_ERROR);
+    } else {
+      $baseurl = $CFG->wwwroot . '/webservice/rest/server.php';
+
+      // Create user's data
+      $users = [];
+      $users[] = [
+        'username' => $fromform->email,
+        'password' =>  $fromform->password,
+        'firstname' =>  $fromform->firstname,
+        'lastname' => $fromform->lastname,
+        'email' => $fromform->email,
+        'lang' => 'pl',
+      ];
+
+      $MoodleRest = new MoodleRest($baseurl, $tokenobject->token);
+      //$MoodleRest->setDebug();
+      $newusers = $MoodleRest->request('core_user_create_users', array('users' => $users));
+
+      $enrolmentsG  = [];
+      $enrolmentsD  = [];
+      $membersG     = [];
+      $membersD     = [];
+
+      foreach ($newusers as $newuser) {
+        if ((int) $newuser['id'] > 0) {
+          $enrolmentsG[] = [
+            'roleid' => '4',
+            'userid' => (int) $newuser['id'],
+            'courseid' => $courseID
+          ];
+
+          $enrolmentsD[] = [
+            'roleid' => '5',
+            'userid' => (int) $newuser['id'],
+            'courseid' => '10'
+          ];
+
+          $membersG[] = [
+            'userid' => (int) $newuser['id'],
+            'groupid' => $groupID
+          ];
+
+          $membersD[] = [
+            'userid' => (int) $newuser['id'],
+            'groupid' => $groupingID
+          ];
+        }
+      }
+
+      if (count($enrolmentsG) > 0) {
+        $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolmentsG));
+        $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolmentsD));
+        $response = $MoodleRest->request('core_group_add_group_members', array('members' => $membersG));
+        $response = $MoodleRest->request('core_group_add_group_members', array('members' => $membersD));
+
+        $i = 1;
+        echo 'Dane nauczyciela:<br/>';
+        foreach ($users as &$user) {
+          foreach ($newusers as $newuser) {
+            if ($user['username'] == $newuser['username']) {
+              $user->id = $newuser['id'];
+              echo $i . '. ' . $user['email'] . ': ' . $user['firstname'] . ' ' . $user['lastname'] . '<br/>';
+              $i++;
+            }
+          }
+        }
+      }
+
+      \core\notification::add('Nauczyciel został dodany do systemu!', \core\output\notification::NOTIFY_SUCCESS);
+    }
+  }
+} else {
+  // this branch is executed if the form is submitted but the data doesn't validate and the form should be redisplayed
+  // or on the first display of the form.
+
+  //Set default data (if any)
+  //$uform->set_data($toform);
+  //displays the form
+  $uform->display();
+}
+
+echo $OUTPUT->footer();

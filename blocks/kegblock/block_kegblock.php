@@ -60,7 +60,7 @@ class block_kegblock extends block_base
           $this->content->text = '<a href="' . $CFG->wwwroot . '/local/addusers/manage.php">' . get_string('addstudents', 'block_kegblock') . '</a>';
           $this->title = get_string('managestudents', 'block_kegblock');
         } elseif ($group->courseid == $course->id and $rolename == 'teacherkeg') {
-          $this->content->text = '<a href="' . $CFG->wwwroot . '/local/addusers/manage.php">' . get_string('addteachers', 'block_kegblock') . '</a>';
+          $this->content->text = '<a href="' . $CFG->wwwroot . '/local/addteachers/manage.php">' . get_string('addteachers', 'block_kegblock') . '</a>';
           $this->title = get_string('manageteachers', 'block_kegblock');
         }
       }
