@@ -1,1 +1,1 @@
-# Moodle plugin for engineer registry
+## Plugin to add students to the course

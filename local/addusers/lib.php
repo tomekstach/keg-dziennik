@@ -23,6 +23,6 @@
  * @var stdClass $plugin
  */
 
- function local_addusers_before_footer() {
-   echo 'hello';
- }
+function local_addusers_before_footer()
+{
+}
