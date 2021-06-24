@@ -26,5 +26,5 @@
 defined('MOODLE_INTERNAL') || die;
 
 $plugin->component = 'local_addteachers';
-$plugin->version   = 2021061900;
+$plugin->version   = 2021062102;
 $plugin->requires  = 2020110900;

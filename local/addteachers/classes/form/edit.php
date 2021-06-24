@@ -34,12 +34,8 @@ class edit extends moodleform
 
     $mform = $this->_form; // Don't forget the underscore! 
 
-    //$mform->addElement('text', 'studentsnumber', 'Number of students'); // Add elements to your form
-    //$mform->setType('studentsnumber', PARAM_INT);                   //Set type of element
-    //$mform->setDefault('studentsnumber', 0);        //Default value
-
     $choices = [];
-    $choices[0] = 'Wybierz grupę';
+    $choices[0] = get_string('studentsgroup', 'local_addteachers');
     $courses = enrol_get_all_users_courses($USER->id, true, ['id', 'fullname']);
     $groups = groups_get_my_groups();
     $groupings = [];
@@ -94,38 +90,38 @@ class edit extends moodleform
       }
 
       if (count($choices) > 1) {
-        $mform->addElement('select', 'group', 'Students group', $choices);
-        $mform->addRule('group', get_string('missinggroup'), 'required');
+        $mform->addElement('select', 'group', get_string('studentsgroup', 'local_addteachers'), $choices);
+        $mform->addRule('group', get_string('missingclass'), 'required');
       } else {
         $choices[0] = 'Wybierz szkołę';
         foreach ($parentGroups as $parentGroup) {
           $choices[$group->groupingid] = $parentGroup->coursename . ', ' . $parentGroup->groupingname;
         }
 
-        $mform->addElement('select', 'grouping', 'Schools', $choices);
+        $mform->addElement('select', 'grouping', get_string('schools'), $choices);
         $mform->addRule('grouping', get_string('missinggrouping'), 'required');
-        $mform->addElement('text', 'groupname', 'Group name'); // Add elements to your form
+        $mform->addElement('text', 'groupname',  get_string('groupname', 'local_addteachers')); // Add elements to your form
         $mform->setType('groupname', PARAM_ALPHANUM);                   //Set type of element
         $mform->setDefault('groupname', '');        //Default value
         $mform->addRule('groupname', get_string('missinggroupname'), 'required');
       }
 
-      $mform->addElement('text', 'email', 'E-mail'); // Add elements to your form
+      $mform->addElement('text', 'email',  get_string('email')); // Add elements to your form
       $mform->setType('email', PARAM_EMAIL);                   //Set type of element
       $mform->addRule('email', get_string('missingemail'), 'required', null, 'server');
       $mform->setDefault('email', '');        //Default value
 
-      $mform->addElement('text', 'firstname', 'First nane'); // Add elements to your form
+      $mform->addElement('text', 'firstname',  get_string('firstname')); // Add elements to your form
       $mform->setType('firstname', PARAM_ALPHA);                   //Set type of element
       $mform->addRule('firstname', get_string('missingfirstname'), 'required');
       $mform->setDefault('firstname', '');        //Default value
 
-      $mform->addElement('text', 'lastname', 'Last name'); // Add elements to your form
+      $mform->addElement('text', 'lastname',  get_string('lastname')); // Add elements to your form
       $mform->setType('lastname', PARAM_ALPHA);                   //Set type of element
       $mform->addRule('lastname', get_string('missinglastname'), 'required');
       $mform->setDefault('lastname', '');        //Default value
 
-      $mform->addElement('password', 'password', 'Password'); // Add elements to your form
+      $mform->addElement('password', 'password', get_string('password')); // Add elements to your form
       $mform->addRule('password', get_string('missingpassword'), 'required');
       $mform->setDefault('namepassword', '');        //Default value
     }

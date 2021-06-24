@@ -34,7 +34,8 @@ $PAGE->set_context(\context_system::instance());
 $PAGE->set_title('Add students');
 
 $templatecontext = (object) [
-  'texttodisplay' => 'Text to display'
+  'texttodisplay' => get_string('localteachertext', 'local_addteachers'),
+  'headertext' => get_string('localteacherheader', 'local_addteachers')
 ];
 
 echo $OUTPUT->header();
@@ -46,13 +47,13 @@ $uform = new edit();
 //Form processing and displaying is done here
 if ($uform->is_cancelled()) {
   //Handle form cancel operation, if cancel button is present on form
-  \core\notification::add('Formularz został wyczyszczony!', \core\output\notification::NOTIFY_WARNING);
+  \core\notification::add(get_string('formwascleared', 'local_addteachers'), \core\output\notification::NOTIFY_WARNING);
   $uform->display();
 } else if ($fromform = $uform->get_data()) {
   //In this case you process validated data. $mform->get_data() returns data posted in form.
   //print_r($fromform);
   if ((int) $fromform->group == 0) {
-    \core\notification::add('Proszę wybrać grupę!', \core\output\notification::NOTIFY_ERROR);
+    \core\notification::add(get_string('selectgroup', 'local_addteachers'), \core\output\notification::NOTIFY_ERROR);
     $uform->display();
   } else {
     $groups = groups_get_my_groups();
@@ -104,59 +105,66 @@ if ($uform->is_cancelled()) {
 
       $MoodleRest = new MoodleRest($baseurl, $tokenobject->token);
       //$MoodleRest->setDebug();
-      $newusers = $MoodleRest->request('core_user_create_users', array('users' => $users));
+      try {
+        $newusers = $MoodleRest->request('core_user_create_users', array('users' => $users));
 
-      $enrolmentsG  = [];
-      $enrolmentsD  = [];
-      $membersG     = [];
-      $membersD     = [];
+        $enrolmentsG  = [];
+        $enrolmentsD  = [];
+        $membersG     = [];
+        $membersD     = [];
 
-      foreach ($newusers as $newuser) {
-        if ((int) $newuser['id'] > 0) {
-          $enrolmentsG[] = [
-            'roleid' => '4',
-            'userid' => (int) $newuser['id'],
-            'courseid' => $courseID
-          ];
+        foreach ($newusers as $newuser) {
+          if ((int) $newuser['id'] > 0) {
+            $enrolmentsG[] = [
+              'roleid' => '4',
+              'userid' => (int) $newuser['id'],
+              'courseid' => $courseID
+            ];
 
-          $enrolmentsD[] = [
-            'roleid' => '5',
-            'userid' => (int) $newuser['id'],
-            'courseid' => '10'
-          ];
+            $enrolmentsD[] = [
+              'roleid' => '5',
+              'userid' => (int) $newuser['id'],
+              'courseid' => '10'
+            ];
 
-          $membersG[] = [
-            'userid' => (int) $newuser['id'],
-            'groupid' => $groupID
-          ];
+            $membersG[] = [
+              'userid' => (int) $newuser['id'],
+              'groupid' => $groupID
+            ];
 
-          $membersD[] = [
-            'userid' => (int) $newuser['id'],
-            'groupid' => $groupingID
-          ];
-        }
-      }
-
-      if (count($enrolmentsG) > 0) {
-        $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolmentsG));
-        $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolmentsD));
-        $response = $MoodleRest->request('core_group_add_group_members', array('members' => $membersG));
-        $response = $MoodleRest->request('core_group_add_group_members', array('members' => $membersD));
-
-        $i = 1;
-        echo 'Dane nauczyciela:<br/>';
-        foreach ($users as &$user) {
-          foreach ($newusers as $newuser) {
-            if ($user['username'] == $newuser['username']) {
-              $user->id = $newuser['id'];
-              echo $i . '. ' . $user['email'] . ': ' . $user['firstname'] . ' ' . $user['lastname'] . '<br/>';
-              $i++;
-            }
+            $membersD[] = [
+              'userid' => (int) $newuser['id'],
+              'groupid' => $groupingID
+            ];
           }
         }
-      }
 
-      \core\notification::add('Nauczyciel został dodany do systemu!', \core\output\notification::NOTIFY_SUCCESS);
+        if (count($enrolmentsG) > 0) {
+          $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolmentsG));
+          $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolmentsD));
+          $response = $MoodleRest->request('core_group_add_group_members', array('members' => $membersG));
+          $response = $MoodleRest->request('core_group_add_group_members', array('members' => $membersD));
+
+          $i = 1;
+          echo 'Dane nauczyciela:<br/>';
+          foreach ($users as &$user) {
+            foreach ($newusers as $newuser) {
+              if ($user['username'] == $newuser['username']) {
+                $user->id = $newuser['id'];
+                echo $i . '. ' . $user['email'] . ': ' . $user['firstname'] . ' ' . $user['lastname'] . '<br/>';
+                $i++;
+              }
+            }
+          }
+          \core\notification::add(get_string('teacherwasadded', 'local_addteachers'), \core\output\notification::NOTIFY_SUCCESS);
+        } else {
+          \core\notification::add(get_string('errorteachernotadded', 'local_addteachers'), \core\output\notification::NOTIFY_ERROR);
+          $uform->display();
+        }
+      } catch (Exception $th) {
+        \core\notification::add($th->getMessage(), \core\output\notification::NOTIFY_ERROR);
+        $uform->display();
+      }
     }
   }
 } else {
