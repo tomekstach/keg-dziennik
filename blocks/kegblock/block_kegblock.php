@@ -47,8 +47,8 @@ class block_kegblock extends block_base
     $this->content->text = '';
     $this->content->footer = '';
 
-    $courses = enrol_get_all_users_courses($USER->id, true, ['id', 'fullname']);
-    $groups = groups_get_my_groups();
+    $courses  = enrol_get_all_users_courses($USER->id, true, ['id', 'fullname']);
+    $groups   = groups_get_my_groups();
 
     foreach ($courses as $course) {
       $context = context_course::instance($course->id);
@@ -57,10 +57,12 @@ class block_kegblock extends block_base
       $rolename = $roles[$role]->shortname;
       foreach ($groups as $group) {
         if ($group->courseid == $course->id and $rolename == 'teacher') {
-          $this->content->text = '<a href="' . $CFG->wwwroot . '/local/addusers/manage.php">' . get_string('addstudents', 'block_kegblock') . '</a>';
+          $this->content->text = '<a href="' . $CFG->wwwroot . '/local/addusers/manage.php">' . get_string('addstudents', 'block_kegblock') . '</a><br/>';
+          $this->content->text .= '<a href="' . $CFG->wwwroot . '/local/listusers/manage.php">' . get_string('liststudents', 'block_kegblock') . '</a>';
           $this->title = get_string('managestudents', 'block_kegblock');
         } elseif ($group->courseid == $course->id and $rolename == 'teacherkeg') {
-          $this->content->text = '<a href="' . $CFG->wwwroot . '/local/addteachers/manage.php">' . get_string('addteachers', 'block_kegblock') . '</a>';
+          $this->content->text = '<a href="' . $CFG->wwwroot . '/local/addteachers/manage.php">' . get_string('addteachers', 'block_kegblock') . '</a><br/>';
+          $this->content->text .= '<a href="' . $CFG->wwwroot . '/local/teachersgroups/manage.php">' . get_string('teachersgroups', 'block_kegblock') . '</a>';
           $this->title = get_string('manageteachers', 'block_kegblock');
         }
       }

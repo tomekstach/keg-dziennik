@@ -30,3 +30,5 @@ $string['managestudents'] = 'Uczniowie';
 $string['addstudents'] = 'Dodaj uczniów';
 $string['manageteachers'] = 'Nauczyciele';
 $string['addteachers'] = 'Dodaj nauczycieli';
+$string['teachersgroups'] = 'Grupy nauczycieli';
+$string['liststudents'] = 'Lista uczniów';
