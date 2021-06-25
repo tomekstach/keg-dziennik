@@ -33,12 +33,13 @@ class edit extends moodleform
 
     $mform = $this->_form; // Don't forget the underscore! 
 
-    $mform->addElement('text', 'studentsnumber', 'Number of students'); // Add elements to your form
+    $mform->addElement('text', 'studentsnumber', get_string('numberofstudents', 'local_addusers')); // Add elements to your form
     $mform->setType('studentsnumber', PARAM_INT);                   //Set type of element
     $mform->setDefault('studentsnumber', 0);        //Default value
+    $mform->addRule('studentsnumber', get_string('missingstudentsnumber', 'local_addusers'), 'required');
 
     $choices = [];
-    $choices[0] = 'Wybierz grupę';
+    $choices[0] = get_string('studentsgroup', 'local_addusers');
     $courses = enrol_get_all_users_courses($USER->id, true, ['id', 'fullname']);
     $groups = groups_get_my_groups();
     //print_r($courses);
@@ -54,7 +55,8 @@ class edit extends moodleform
         }
       }
     }
-    $mform->addElement('select', 'group', 'Students group', $choices);
+    $mform->addElement('select', 'group', get_string('studentsgroup', 'local_addusers'), $choices);
+    $mform->addRule('group', get_string('missingclass', 'local_addusers'), 'required');
 
     $this->add_action_buttons();
   }

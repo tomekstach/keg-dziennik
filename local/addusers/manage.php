@@ -34,7 +34,8 @@ $PAGE->set_context(\context_system::instance());
 $PAGE->set_title('Add students');
 
 $templatecontext = (object) [
-  'texttodisplay' => 'Text to display'
+  'texttodisplay' => get_string('localusertext', 'local_addusers'),
+  'headertext' => get_string('localuserheader', 'local_addusers')
 ];
 
 echo $OUTPUT->header();
@@ -46,16 +47,16 @@ $uform = new edit();
 //Form processing and displaying is done here
 if ($uform->is_cancelled()) {
   //Handle form cancel operation, if cancel button is present on form
-  \core\notification::add('Formularz został wyczyszczony!', \core\output\notification::NOTIFY_WARNING);
+  \core\notification::add(get_string('formwascleared', 'local_addusers'), \core\output\notification::NOTIFY_WARNING);
   $uform->display();
 } else if ($fromform = $uform->get_data()) {
   //In this case you process validated data. $mform->get_data() returns data posted in form.
   //print_r($fromform);
   if ((int) $fromform->studentsnumber == 0) {
-    \core\notification::add('Liczba uczniów musi być większa od zera!', \core\output\notification::NOTIFY_ERROR);
+    \core\notification::add(get_string('errornumberofstudents', 'local_addusers'), \core\output\notification::NOTIFY_ERROR);
     $uform->display();
   } elseif ((int) $fromform->group == 0) {
-    \core\notification::add('Proszę wybrać grupę!', \core\output\notification::NOTIFY_ERROR);
+    \core\notification::add(get_string('selectgroup', 'local_addusers'), \core\output\notification::NOTIFY_ERROR);
     $uform->display();
   } else {
     $groups = groups_get_my_groups();
@@ -146,7 +147,7 @@ if ($uform->is_cancelled()) {
         }
       }
 
-      \core\notification::add('Uczniowie zostali dodani do systemu!', \core\output\notification::NOTIFY_SUCCESS);
+      \core\notification::add(get_string('userswereadded', 'local_addusers'), \core\output\notification::NOTIFY_SUCCESS);
     }
   }
 } else {
