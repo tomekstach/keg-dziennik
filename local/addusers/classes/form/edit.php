@@ -42,16 +42,48 @@ class edit extends moodleform
     $choices[0] = get_string('studentsgroup', 'local_addusers');
     $courses = enrol_get_all_users_courses($USER->id, true, ['id', 'fullname']);
     $groups = groups_get_my_groups();
+    $groupings = [];
+    $parentGroups = [];
     //print_r($courses);
     //print_r($groups);
-    foreach ($courses as $course) {
-      $context = context_course::instance($course->id);
-      $roles = get_user_roles($context, $USER->id, true);
-      $role = key($roles);
-      $rolename = $roles[$role]->shortname;
-      foreach ($groups as $group) {
-        if ($group->courseid == $course->id and $rolename == 'teacher') {
-          $choices[$group->id] = $group->name;
+
+    // Find schools from 'dziennik'
+    foreach ($groups as $group) {
+      if ($group->courseid == '10') {
+        $groupings[] = $group;
+      }
+    }
+
+    // Find schools in courses where user has role teacherkeg and it is not 'dziennik'
+    if (count($groupings) > 0) {
+      foreach ($courses as $course) {
+        if ($course->category != '4') {
+          $context = context_course::instance($course->id);
+          $roles = get_user_roles($context, $USER->id, true);
+          $role = key($roles);
+          $rolename = $roles[$role]->shortname;
+
+          if ($rolename == 'teacher') {
+            foreach ($groupings as $group) {
+              $parentGroup = new \stdClass;
+              $parentGroup->courseid = $course->id;
+              $parentGroup->coursename = $course->shortname;
+              $parentGroup->groupingid = intval(groups_get_grouping_by_name($course->id, $group->name));
+              $parentGroup->schoolid   = intval($group->id);
+
+              if ($parentGroup->groupingid > 0) {
+                $parentGroup->groupingname = groups_get_grouping_name($parentGroup->groupingid);
+                $parentGroups[] = $parentGroup;
+              }
+            }
+          }
+        }
+      }
+
+      foreach ($parentGroups as &$parentGroup) {
+        $parentGroup->groups = groups_get_all_groups($parentGroup->courseid, 0, $parentGroup->groupingid, 'g.*');
+        foreach ($parentGroup->groups as $group) {
+          $choices[$group->id . '-' . $parentGroup->schoolid] = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $group->name;
         }
       }
     }
