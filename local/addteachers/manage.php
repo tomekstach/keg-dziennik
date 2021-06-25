@@ -29,14 +29,35 @@ require_once($CFG->dirroot . '/local/addteachers/vendor/llagerlof/moodlerest/Moo
 
 global $USER;
 
+require_login();
+
 $PAGE->set_url(new moodle_url('/local/addteachers/manage.php'));
-$PAGE->set_context(\context_system::instance());
-$PAGE->set_title('Add students');
+$PAGE->set_title(get_string('localteacherheader', 'local_addteachers'));
 
 $templatecontext = (object) [
   'texttodisplay' => get_string('localteachertext', 'local_addteachers'),
   'headertext' => get_string('localteacherheader', 'local_addteachers')
 ];
+
+if (isguestuser()) {  // Force them to see system default, no editing allowed
+  // If guests are not allowed my moodle, send them to front page.
+  if (empty($CFG->allowguestmymoodle)) {
+    redirect(new moodle_url('/', array('redirect' => 0)));
+  }
+
+  $userid = null;
+  $USER->editing = $edit = 0;  // Just in case
+  $context = context_system::instance();
+  $PAGE->set_blocks_editing_capability('moodle/my:configsyspages');  // unlikely :)
+} else {        // We are trying to view or edit our own My Moodle page
+  $userid = $USER->id;  // Owner of the page
+  $context = context_user::instance($USER->id);
+  $PAGE->set_blocks_editing_capability('moodle/my:manageblocks');
+}
+
+$PAGE->set_context($context);
+$PAGE->set_pagelayout('mydashboard');
+$PAGE->set_pagetype('my-index');
 
 echo $OUTPUT->header();
 
