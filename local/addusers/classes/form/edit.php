@@ -83,7 +83,7 @@ class edit extends moodleform
       foreach ($parentGroups as &$parentGroup) {
         $parentGroup->groups = groups_get_all_groups($parentGroup->courseid, 0, $parentGroup->groupingid, 'g.*');
         foreach ($parentGroup->groups as $group) {
-          $choices[$group->id . '-' . $parentGroup->schoolid] = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $group->name;
+          $choices[$group->id] = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $group->name;
         }
       }
     }
