@@ -24,3 +24,5 @@
 
 $string['localuserheader'] = 'Students list';
 $string['localusertext'] = 'List of students divided to the classes';
+$string['never'] = 'Never';
+$string['studentsgroup'] = 'Choose a class';

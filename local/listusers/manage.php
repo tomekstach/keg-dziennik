@@ -23,14 +23,16 @@
  */
 
 require_once(__DIR__ . '/../../config.php');
+require_once($CFG->dirroot . '/local/listusers/classes/form/filter.php');
 require_once($CFG->dirroot . '/group/lib.php');
 
-global $USER;
+global $USER, $PAGE;
 
 require_login();
 
-$PAGE->set_url(new moodle_url('/local/addusers/manage.php'));
+$PAGE->set_url(new moodle_url('/local/listusers/manage.php'));
 $PAGE->set_title(get_string('localuserheader', 'local_listusers'));
+$PAGE->requires->js_call_amd('local_listusers/config');
 
 $templatecontext = (object) [
   'texttodisplay' => get_string('localusertext', 'local_listusers'),
@@ -53,57 +55,102 @@ if (isguestuser()) {  // Force them to see system default, no editing allowed
   $PAGE->set_blocks_editing_capability('moodle/my:manageblocks');
 }
 
+$values     = optional_param('group', '', PARAM_ALPHANUMEXT);
+$courseid   = (int) explode('-', $values)[0];
+$groupid    = (int) explode('-', $values)[1];
+
+$groupname  = '';
+
 $choices = [];
-    $choices[0] = get_string('studentsgroup', 'local_addusers');
-    $courses = enrol_get_all_users_courses($USER->id, true, ['id', 'fullname']);
-    $groups = groups_get_my_groups();
-    $groupings = [];
-    $parentGroups = [];
-    //print_r($courses);
-    //print_r($groups);
+$choices[0] = get_string('studentsgroup', 'local_listusers');
+$courses = enrol_get_all_users_courses($USER->id, true, ['id', 'fullname']);
+$groups = groups_get_my_groups();
+$groupings = [];
+$parentGroups = [];
 
-    // Find schools from 'dziennik'
-    foreach ($groups as $group) {
-      if ($group->courseid == '10') {
-        $groupings[] = $group;
-      }
-    }
+// Find schools from 'dziennik'
+foreach ($groups as $group) {
+  if ($group->courseid == '10') {
+    $groupings[] = $group;
+  }
+}
 
-    // Find schools in courses where user has role teacherkeg and it is not 'dziennik'
-    if (count($groupings) > 0) {
-      foreach ($courses as $course) {
-        if ($course->category != '4') {
-          $context = context_course::instance($course->id);
-          $roles = get_user_roles($context, $USER->id, true);
-          $role = key($roles);
-          $rolename = $roles[$role]->shortname;
+// Find schools in courses where user has role teacherkeg and it is not 'dziennik'
+if (count($groupings) > 0) {
+  foreach ($courses as $course) {
+    if ($course->category != '4') {
+      $contextCourse = context_course::instance($course->id);
+      $roles = get_user_roles($contextCourse, $USER->id, true);
+      $role = key($roles);
+      $rolename = $roles[$role]->shortname;
 
-          if ($rolename == 'teacher') {
-            foreach ($groupings as $group) {
-              $parentGroup = new \stdClass;
-              $parentGroup->courseid = $course->id;
-              $parentGroup->coursename = $course->shortname;
-              $parentGroup->groupingid = intval(groups_get_grouping_by_name($course->id, $group->name));
-              $parentGroup->schoolid   = intval($group->id);
+      if ($rolename == 'teacher') {
+        foreach ($groupings as $group) {
+          if ($courseid == 0) {
+            $courseid = $course->id;
+          }
+          $parentGroup = new \stdClass;
+          $parentGroup->courseid = $course->id;
+          $parentGroup->coursename = $course->shortname;
+          $parentGroup->groupingid = intval(groups_get_grouping_by_name($course->id, $group->name));
+          $parentGroup->schoolid   = intval($group->id);
 
-              if ($parentGroup->groupingid > 0) {
-                $parentGroup->groupingname = groups_get_grouping_name($parentGroup->groupingid);
-                $parentGroups[] = $parentGroup;
-              }
-            }
+          if ($parentGroup->groupingid > 0) {
+            $parentGroup->groupingname = groups_get_grouping_name($parentGroup->groupingid);
+            $parentGroups[] = $parentGroup;
           }
         }
       }
+    }
+  }
 
-      foreach ($parentGroups as &$parentGroup) {
-        $parentGroup->groups = groups_get_all_groups($parentGroup->courseid, 0, $parentGroup->groupingid, 'g.*');
-        foreach ($parentGroup->groups as $group) {
-          $choices[$group->id . '-' . $parentGroup->schoolid] = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $group->name;
-        }
+  foreach ($parentGroups as &$parentGroup) {
+    $parentGroup->groups = groups_get_all_groups($parentGroup->courseid, 0, $parentGroup->groupingid, 'g.*');
+    foreach ($parentGroup->groups as $group) {
+      if ($groupid == 0) {
+        $groupid    = $group->id;
+        $groupname  = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $group->name;
+      } elseif ($group->id == $groupid) {
+        $groupname  = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $group->name;
       }
+      $choices[$parentGroup->courseid . '-' . $group->id] = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $group->name;
+    }
+  }
+}
+
+$templatecontext->courseid  = $courseid;
+$templatecontext->groupid   = $groupid;
+$students = groups_get_members($groupid, $fields = 'u.*', $sort = 'lastname ASC');
+
+$templatecontext->students = [];
+
+$contextCourse = context_course::instance($courseid);
+
+foreach ($students as $student) {
+  $userStudent  = profile_user_record($student->id);
+  $roles        = get_user_roles($contextCourse, $student->id, true);
+  $role         = key($roles);
+
+  if ($roles[$role]->shortname == 'student') {
+    if ($student->lastaccess > 0) {
+      $student->lastaccess = date('Y-m-d H:i:s', $student->lastaccess);
+    } else {
+      $student->lastaccess = get_string('never', 'local_listusers');
     }
 
-$students = groups_get_members($groupid, $fields='u.*', $sort='lastname ASC');
+    $templatecontext->students[] = (object) [
+      'id' => $student->id,
+      'name' => $student->username,
+      'lastaccess' => $student->lastaccess,
+      'group' => $groupname,
+      'nr_dziennika' => $userStudent->nr_dziennika
+    ];
+  }
+}
+
+$templatecontext->anyStudents = count($templatecontext->students) > 0 ? true : false;
+
+//print_r($students);
 
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('mydashboard');
@@ -111,8 +158,11 @@ $PAGE->set_pagetype('my-index');
 
 echo $OUTPUT->header();
 
-echo $OUTPUT->render_from_template('local_listusers/manage', $templatecontext);
+echo '<h1>' . $templatecontext->headertext . '</h1><p>' . $templatecontext->texttodisplay . '</p>';
 
-echo 'test';
+$uform = new filterUsers();
+$uform->display();
+
+echo $OUTPUT->render_from_template('local_listusers/manage', $templatecontext);
 
 echo $OUTPUT->footer();

@@ -26,5 +26,5 @@
 defined('MOODLE_INTERNAL') || die;
 
 $plugin->component = 'local_listusers';
-$plugin->version   = 2021062501;
+$plugin->version   = 2021071200;
 $plugin->requires  = 2020110900;

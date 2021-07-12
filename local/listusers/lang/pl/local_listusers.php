@@ -24,3 +24,5 @@
 
 $string['localuserheader'] = 'Lista uczniów';
 $string['localusertext'] = 'Lista wszystkich uczniów z podziałem na klasy';
+$string['never'] = 'Nigdy';
+$string['studentsgroup'] = 'Wybierz klasę';
