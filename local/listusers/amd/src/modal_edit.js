@@ -41,10 +41,21 @@ define(['jquery', 'core/notification', 'core/custom_interaction_events', 'core/m
       this.getModal().on(CustomEvents.events.activate, SELECTORS.SAVE_BUTTON, function(e, data) {
         // Add your logic for when the save button is clicked. This could include the form validation,
         // loading animations, error handling etc.
+        var nrdziennikaval = this.getRoot().find('#inputNRDziennika').val();
+        console.log(nrdziennikaval);
+        /*$.ajax({
+          type: "POST",
+          url: "/local/listusers/edit.php?id=" + elementid,
+          success: function(data) {
+            //console.log($data);
+            window.location.reload(true);
+          }
+        });*/
       }.bind(this));
 
       this.getModal().on(CustomEvents.events.activate, SELECTORS.CANCEL_BUTTON, function(e, data) {
         // Add your logic for when the cancel button is clicked.
+        this.hide();
       }.bind(this));
     };
 
