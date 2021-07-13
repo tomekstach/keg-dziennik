@@ -48,7 +48,12 @@ class edit extends moodleform
     //print_r($groups);
 
     // Find schools from 'dziennik'
-    foreach ($groups as $group) {
+    foreach ($groups as &$group) {
+      $context = context_course::instance($group->courseid);
+      $roles = get_user_roles($context, $USER->id, true);
+      $role = key($roles);
+      $group->rolename = $roles[$role]->shortname;
+
       if ($group->courseid == '10') {
         $groupings[] = $group;
       }
@@ -83,7 +88,9 @@ class edit extends moodleform
       foreach ($parentGroups as &$parentGroup) {
         $parentGroup->groups = groups_get_all_groups($parentGroup->courseid, 0, $parentGroup->groupingid, 'g.*');
         foreach ($parentGroup->groups as $group) {
-          $choices[$group->id] = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $group->name;
+          if ($groups[$group->id]->rolename == 'teacher') {
+            $choices[$group->id] = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $group->name;
+          }
         }
       }
     }

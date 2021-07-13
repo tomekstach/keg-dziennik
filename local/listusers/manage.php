@@ -32,7 +32,8 @@ require_login();
 
 $PAGE->set_url(new moodle_url('/local/listusers/manage.php'));
 $PAGE->set_title(get_string('localuserheader', 'local_listusers'));
-$PAGE->requires->js_call_amd('local_listusers/config');
+$PAGE->requires->js_call_amd('local_listusers/modal_edit');
+$PAGE->requires->js_call_amd('local_listusers/config', 'init', array(get_string('nrdziennika', 'local_listusers'), get_string('nrdziennikafull', 'local_listusers'), get_string('edit', 'local_listusers')));
 
 $templatecontext = (object) [
   'texttodisplay' => get_string('localusertext', 'local_listusers'),
@@ -69,7 +70,12 @@ $groupings = [];
 $parentGroups = [];
 
 // Find schools from 'dziennik'
-foreach ($groups as $group) {
+foreach ($groups as &$group) {
+  $contextCourse = context_course::instance($group->courseid);
+  $roles = get_user_roles($contextCourse, $USER->id, true);
+  $role = key($roles);
+  $group->rolename = $roles[$role]->shortname;
+
   if ($group->courseid == '10') {
     $groupings[] = $group;
   }
@@ -107,13 +113,15 @@ if (count($groupings) > 0) {
   foreach ($parentGroups as &$parentGroup) {
     $parentGroup->groups = groups_get_all_groups($parentGroup->courseid, 0, $parentGroup->groupingid, 'g.*');
     foreach ($parentGroup->groups as $group) {
-      if ($groupid == 0) {
-        $groupid    = $group->id;
-        $groupname  = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $group->name;
-      } elseif ($group->id == $groupid) {
-        $groupname  = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $group->name;
+      if ($groups[$group->id]->rolename == 'teacher') {
+        if ($groupid == 0) {
+          $groupid    = $group->id;
+          $groupname  = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $group->name;
+        } elseif ($group->id == $groupid) {
+          $groupname  = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $group->name;
+        }
+        $choices[$parentGroup->courseid . '-' . $group->id] = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $group->name;
       }
-      $choices[$parentGroup->courseid . '-' . $group->id] = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $group->name;
     }
   }
 }
@@ -143,7 +151,7 @@ foreach ($students as $student) {
       'name' => $student->username,
       'lastaccess' => $student->lastaccess,
       'group' => $groupname,
-      'nr_dziennika' => $userStudent->nr_dziennika
+      'nrdziennika' => $userStudent->nr_dziennika
     ];
   }
 }
