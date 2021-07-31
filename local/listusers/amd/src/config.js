@@ -4,7 +4,6 @@ define([
 
   return {
     init: function(inputName, inputPlacehoder, headerName) {
-      //console.log(strings);
       $('#id_group').change(function() {
         this.form.submit();
       });
@@ -24,7 +23,6 @@ define([
               type: "POST",
               url: "/local/listusers/delete.php?id=" + elementid,
               success: function(data) {
-                //console.log($data);
                 window.location.reload(true);
               }
             });
@@ -44,29 +42,11 @@ define([
           root.find('#inputNRDziennika').attr("placeholder", inputPlacehoder).val(clickedLink.data('nrdziennika'));
           root.find('[for="inputNRDziennika"]').html(inputName);
           root.find('.modal-title').html(headerName);
+          root.find('#inputID').val(clickedLink.data('id'));
+          root.find('#inputGroup').val(clickedLink.data('group'));
+          root.find('#inputCourse').val(clickedLink.data('course'));
           modal.show();
         });
-
-        /*ModalFactory.create({
-          type: ModalFactory.types.SAVE_CANCEL,
-          title: 'Delete item',
-          body: 'Do you really want to delete?',
-        }).then(function(modal) {
-          modal.setSaveButtonText('Delete');
-          var root = modal.getRoot();
-          root.on(ModalEvents.save, function() {
-            var elementid = clickedLink.data('id');
-            $.ajax({
-              type: "POST",
-              url: "/local/listusers/delete.php?id=" + elementid,
-              success: function(data) {
-                //console.log($data);
-                window.location.reload(true);
-              }
-            });
-          });
-          modal.show();
-        });*/
       });
     }
   }

@@ -42,15 +42,24 @@ define(['jquery', 'core/notification', 'core/custom_interaction_events', 'core/m
         // Add your logic for when the save button is clicked. This could include the form validation,
         // loading animations, error handling etc.
         var nrdziennikaval = this.getRoot().find('#inputNRDziennika').val();
-        console.log(nrdziennikaval);
-        /*$.ajax({
+        var passwordval = this.getRoot().find('#inputPassword').val();
+        var groupval = this.getRoot().find('#inputGroup').val();
+        var courseval = this.getRoot().find('#inputCourse').val();
+        var idval = this.getRoot().find('#inputID').val();
+        var alertObject = this.getRoot().find('#user-notifications');
+        //console.log("/local/listusers/edit.php?id=" + idval + "&group=" + groupval + "&course=" + courseval + "&pass=" + passwordval + "&nr=" + nrdziennikaval);
+        $.ajax({
           type: "POST",
-          url: "/local/listusers/edit.php?id=" + elementid,
+          url: "/local/listusers/edit.php?id=" + idval + "&group=" + groupval + "&course=" + courseval + "&pass=" + passwordval + "&nr=" + nrdziennikaval,
           success: function(data) {
-            //console.log($data);
-            window.location.reload(true);
+            var result = JSON.parse(data);
+            //console.log(result);
+            //Notification.exception({ message: result.message });
+            alertObject.find('div.alert').html(result.message);
+            alertObject.show();
+            //window.location.reload(true);
           }
-        });*/
+        });
       }.bind(this));
 
       this.getModal().on(CustomEvents.events.activate, SELECTORS.CANCEL_BUTTON, function(e, data) {

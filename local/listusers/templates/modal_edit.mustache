@@ -28,6 +28,9 @@
     {{$title}}{{#str}} Edit {{/str}}{{/title}}
     {{$body}}
         <div class="container">
+            <span class="notifications" id="user-notifications" style="display: none;"><div class="alert alert-danger alert-block fade in " role="alert" data-aria-autofocus="true">
+              Error message
+          </div></span>
             <form>
                 <div class="form-group row">
                     <label for="inputNRDziennika" class="col-sm-2 col-form-label">{{#str}} nrdziennika {{/str}}</label>
@@ -45,6 +48,9 @@
         </div>
     {{/body}}
     {{$footer}}
+        <input type="hidden" id="inputID" name="userid" value="">
+        <input type="hidden" id="inputGroup" name="group" value="">
+        <input type="hidden" id="inputCourse" name="course" value="">
         <button type="button" class="btn btn-primary" data-action="save">{{#str}} save {{/str}}</button>
         <button type="button" class="btn btn-secondary" data-action="cancel">{{#str}} cancel {{/str}}</button>
     {{/footer}}

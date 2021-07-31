@@ -123,7 +123,7 @@ class edit extends moodleform
 
       $mform->addElement('password', 'password', get_string('password')); // Add elements to your form
       $mform->addRule('password', get_string('missingpassword'), 'required');
-      $mform->setDefault('namepassword', '');        //Default value
+      $mform->setDefault('password', '');        //Default value
     }
 
     $this->add_action_buttons();
