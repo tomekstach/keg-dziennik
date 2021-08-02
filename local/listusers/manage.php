@@ -135,7 +135,7 @@ $templatecontext->students = [];
 $contextCourse = context_course::instance($courseid);
 
 foreach ($students as $student) {
-  $userStudent  = profile_user_record($student->id);
+  profile_load_data($student);
   $roles        = get_user_roles($contextCourse, $student->id, true);
   $role         = key($roles);
 
@@ -151,7 +151,7 @@ foreach ($students as $student) {
       'name' => $student->username,
       'lastaccess' => $student->lastaccess,
       'group' => $groupname,
-      'nrdziennika' => $userStudent->nr_dziennika
+      'nrdziennika' => $student->profile_field_nr_dziennika
     ];
   }
 }

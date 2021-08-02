@@ -49,7 +49,7 @@ if (!isguestuser()) {
     $group       = (object) ["id" => optional_param('group', '', PARAM_INT), 'access' => false];
     $course      = (object) ["id" => optional_param('course', '', PARAM_INT), 'access' => false];
     $password    = optional_param('pass', '', PARAM_ALPHANUMEXT);
-    $nrdziennika = optional_param('nr', '', PARAM_ALPHANUMEXT);
+    $nrdziennika = (int) optional_param('nr', '', PARAM_INT);
 
     if (($nrdziennika == '' or $nrdziennika == '0') and $password == '') {
       echo '{"message": "Error: Nr dziennika and password are empty!", "error": true}';
@@ -84,20 +84,18 @@ if (!isguestuser()) {
           if (!isset($students[$student->id])) {
             echo '{"message": "Error: This student is not assigned to this group!", "error": true}';
           } else {
-            $enrolments[] = [
-              'roleid'    => '5',
-              'userid'    => (int) $student->id,
-              'courseid'  => $course->id
-            ];
-            $members[] = [
-              'userid'    => (int) $student->id,
-              'groupid'   => $group->id
-            ];
-            // TODO: Run correct API methods
-            // Run API methods
-            //$response = $MoodleRest->request('enrol_manual_unenrol_users', array('enrolments' => $enrolments));
-            //$response = $MoodleRest->request('core_group_delete_group_members', array('members' => $members));
+            if ($nrdziennika > 0) {
+              // Save student data
+              $student->profile_field_nr_dziennika = $nrdziennika;
+              profile_save_data($student);
+            }
+
+            if (strlen($password) > 0) {
+              // Set the password.
+              update_internal_user_password($student, $password);
+            }
           }
+          echo '{"message": "Message: Data saved successfully!", "error": false}';
         }
       }
     }

@@ -54,10 +54,12 @@ define(['jquery', 'core/notification', 'core/custom_interaction_events', 'core/m
           success: function(data) {
             var result = JSON.parse(data);
             //console.log(result);
-            //Notification.exception({ message: result.message });
-            alertObject.find('div.alert').html(result.message);
-            alertObject.show();
-            //window.location.reload(true);
+            if (result.error == true) {
+              alertObject.find('div.alert').html(result.message);
+              alertObject.show();
+            } else {
+              window.location.reload(true);
+            }
           }
         });
       }.bind(this));

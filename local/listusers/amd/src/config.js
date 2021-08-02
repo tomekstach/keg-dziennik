@@ -39,7 +39,7 @@ define([
           type: ModalEdit.TYPE
         }).then(function(modal) {
           var root = modal.getRoot();
-          root.find('#inputNRDziennika').attr("placeholder", inputPlacehoder).val(clickedLink.data('nrdziennika'));
+          root.find('#inputNRDziennika').attr("placeholder", inputPlacehoder).val(clickedLink.data('nr'));
           root.find('[for="inputNRDziennika"]').html(inputName);
           root.find('.modal-title').html(headerName);
           root.find('#inputID').val(clickedLink.data('id'));
