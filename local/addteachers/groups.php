@@ -29,12 +29,12 @@ global $USER, $PAGE;
 
 require_login();
 
-$PAGE->set_url(new moodle_url('/local/addteachers/list.php'));
+$PAGE->set_url(new moodle_url('/local/addteachers/groups.php'));
 $PAGE->set_title(get_string('localuserheader', 'local_addteachers'));
-$PAGE->requires->js_call_amd('local_addteachers/modal_edit');
+$PAGE->requires->js_call_amd('local_addteachers/modal_addgroup');
 
 $templatecontext = (object) [
-  'headertext' => get_string('localuserheader', 'local_addteachers')
+  'headertext' => get_string('localgroupsheader', 'local_addteachers')
 ];
 
 if (isguestuser()) {  // Force them to see system default, no editing allowed
@@ -78,7 +78,7 @@ foreach ($groups as &$group) {
   }
 }
 
-$templatecontext->teachers = [];
+$templatecontext->groups = [];
 
 
 foreach ($classes as &$class) {
@@ -88,44 +88,36 @@ foreach ($classes as &$class) {
 
   $contextCourse = context_course::instance($class->courseid);
 
+  $class->teachers = [];
+  $class->students = [];
+
   foreach ($teachers as $teacher) {
     profile_load_data($teacher);
     $roles        = get_user_roles($contextCourse, $teacher->id, true);
     $role         = key($roles);
 
-    if ($roles[$role]->shortname == 'teacher' and !findObjectById($templatecontext->teachers, $teacher->id)) {
-      if ($teacher->lastaccess > 0) {
-        $teacher->lastaccess = date('Y-m-d H:i:s', $teacher->lastaccess);
-      } else {
-        $teacher->lastaccess = get_string('never', 'local_addteachers');
-      }
-
-      $teacherGroups = groups_get_user_groups($class->courseid, $teacher->id);
-
-      foreach ($teacherGroups as $key => $groupID) {
-        foreach ($groupID as $value) {
-          if (!findObjectById($teacher->groups, $value)) {
-            $group = groups_get_group($value, $fields = '*', $strictness = IGNORE_MISSING);
-            $group->coursename = $course->shortname;
-            $group->teacherid = $teacher->id;
-            $teacher->groups[] = $group;
-          }
-        }
-      }
-
-      $templatecontext->teachers[] = (object) [
-        'id' => $teacher->id,
-        'username' => $teacher->firstname . ' ' . $teacher->lastname,
-        'lastaccess' => $teacher->lastaccess,
-        'groups' => $teacher->groups
-      ];
+    if ($roles[$role]->shortname == 'teacher' and !findObjectById($class->teachers, $teacher->id)) {
+      $class->teachers[] = $teacher;
+    } elseif ($roles[$role]->shortname == 'student' and !findObjectById($class->students, $teacher->id)) {
+      $class->students[] = $teacher;
     }
+  }
+
+  $templatecontext->groups[] = $class;
+}
+
+foreach ($courses as $key => &$course) {
+  $course->id = $course->id . '-' . intval(groups_get_grouping_by_name($course->id, $groupings->name));
+  if ($course->category != '3') {
+    unset($courses[$key]);
   }
 }
 
-$PAGE->requires->js_call_amd('local_addteachers/config', 'init', array(get_string('group', 'local_addteachers'), get_string('edit', 'local_addteachers'), $classes));
+$courses = array_values($courses);
 
-$templatecontext->anyTeachers = count($templatecontext->teachers) > 0 ? true : false;
+$PAGE->requires->js_call_amd('local_addteachers/configgroup', 'init', array(get_string('group', 'local_addteachers'), get_string('edit', 'local_addteachers'), $courses));
+
+$templatecontext->anyGroups = count($templatecontext->groups) > 0 ? true : false;
 
 function findObjectById($array, $id)
 {
@@ -146,6 +138,6 @@ echo $OUTPUT->header();
 
 echo '<h1>' . $templatecontext->headertext . '</h1><p>' . $groupings->name . '</p>';
 
-echo $OUTPUT->render_from_template('local_addteachers/list', $templatecontext);
+echo $OUTPUT->render_from_template('local_addteachers/groups', $templatecontext);
 
 echo $OUTPUT->footer();

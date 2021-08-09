@@ -63,7 +63,7 @@ class block_kegblock extends block_base
         } elseif ($group->courseid == $course->id and $rolename == 'teacherkeg') {
           $this->content->text = '<a href="' . $CFG->wwwroot . '/local/addteachers/manage.php">' . get_string('addteachers', 'block_kegblock') . '</a><br/>';
           $this->content->text .= '<a href="' . $CFG->wwwroot . '/local/addteachers/list.php">' . get_string('listteachers', 'block_kegblock') . '</a><br/>';
-          $this->content->text .= '<a href="' . $CFG->wwwroot . '/local/teachersgroups/manage.php">' . get_string('teachersgroups', 'block_kegblock') . '</a>';
+          $this->content->text .= '<a href="' . $CFG->wwwroot . '/local/addteachers/groups.php">' . get_string('teachersgroups', 'block_kegblock') . '</a>';
           $this->title = get_string('manageteachers', 'block_kegblock');
         }
       }

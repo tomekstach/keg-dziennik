@@ -29,7 +29,10 @@
   <thead>
     <tr>
   <th class="header c1" scope="col">
-    Imię i nazwisko
+    Nazwa uzytkownika
+  </th>
+  <th class="header c2" scope="col">
+    Nr dziennika
   </th>
   <th class="header c3" scope="col">
     Grupy
@@ -47,13 +50,15 @@
   {{#teachers}}
     <tr class="">
       <th class="cell c1" scope="row">
-        <img src="/theme/image.php/school/core/1624652259/u/f2" class="userpicture defaultuserpic" alt="Obraz {{username}}" title="Obraz {{username}}" width="35" height="35">{{username}}
+        <img src="/theme/image.php/school/core/1624652259/u/f2" class="userpicture defaultuserpic" alt="Obraz {{name}}" title="Obraz {{name}}" width="35" height="35">{{name}}
       </th>
-      <td class="cell c3">{{#groups}}{{coursename}} {{name}} <a href="/enrol/unenroluser.php?page=0&amp;perpage=20&amp;contextid=0&amp;id=6&amp;newcourse&amp;ue=40" data-id="{{courseid}}-{{id}}-{{teacherid}}" role="button" class="item-delete" rel="40" data-action="unenrol" title="Wypisz z kursu"><i class="icon fa fa-trash fa-fw " title="Wypisz z kursu" aria-label="Wypisz z kursu"></i></a><br/>{{/groups}}</td>
+      <td class="cell c2">{{nrdziennika}}</td>
+      <td class="cell c3">{{group}}</td>
       <td class="cell c4">{{lastaccess}}</td>
       <td class="cell c5">
         <div>
-    <a href="/local/addteachers/edit.php?id={{id}}" role="button" class="editenrollink" data-id="{{id}}" rel="40" data-action="editenrolment" title="Dodaj"><i class="icon fa fa-cog fa-fw " title="Dodaj klasę" aria-label="Dodaj klasę"></i></a>
+    <a href="/local/listusers/edit.php?id={{id}}" role="button" class="editenrollink" data-id="{{id}}" data-group="{{groupid}}" data-course="{{courseid}}" data-nr="{{nrdziennika}}" rel="40" data-action="editenrolment" title="Edytuj"><i class="icon fa fa-cog fa-fw " title="Edytuj zapisy" aria-label="Edytuj zapisy"></i></a>
+    <a href="/enrol/unenroluser.php?page=0&amp;perpage=20&amp;contextid=0&amp;id=6&amp;newcourse&amp;ue=40" data-id="{{courseid}}-{{groupid}}-{{id}}" role="button" class="item-delete" rel="40" data-action="unenrol" title="Wypisz z kursu"><i class="icon fa fa-trash fa-fw " title="Wypisz z kursu" aria-label="Wypisz z kursu"></i></a>
 </div>
       </td>
     </tr>
@@ -62,7 +67,3 @@
 {{#anyTeachers}}
 </tbody></table>
 {{/anyTeachers}}
-
-<div class="form-group">
-  <a href="/local/addteachers/manage.php" class="btn btn-secondary">Dodaj nauczyciela</a>
-</div>

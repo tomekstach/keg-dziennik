@@ -31,3 +31,7 @@ $string['formwascleared'] = 'Form was cleared!';
 $string['selectgroup'] = 'Please select the class!';
 $string['teacherwasadded'] = 'Teacher was added to the system!';
 $string['errorteachernotadded'] = 'ERROR: Teacher was not added to the system!';
+$string['localuserheader'] = 'Teachers list';
+$string['never'] = 'Never';
+$string['group'] = 'Group';
+$string['edit'] = 'Add group';

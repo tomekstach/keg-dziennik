@@ -31,3 +31,7 @@ $string['formwascleared'] = 'Formularz został wyczyszczony!';
 $string['selectgroup'] = 'Proszę wybrać klasę!';
 $string['teacherwasadded'] = 'Nauczyciel został dodany do systemu!';
 $string['errorteachernotadded'] = 'BŁĄD: Nauczyciel nie został dodany do systemu!';
+$string['localuserheader'] = 'Lista nauczycieli';
+$string['never'] = 'Nigdy';
+$string['group'] = 'Grupa';
+$string['edit'] = 'Przypisz grupę';

@@ -1,13 +1,9 @@
 define([
-  'jquery', 'core/modal_factory', 'core/modal_events', 'local_addteachers/modal_edit', 'core/templates'
-], function($, ModalFactory, ModalEvents, ModalEdit, Templates) {
+  'jquery', 'core/modal_factory', 'core/modal_events', 'local_addteachers/modal_addgroup', 'core/templates'
+], function($, ModalFactory, ModalEvents, ModalAdd, Templates) {
 
   return {
-    init: function(inputName, headerName, groups) {
-      console.log(groups);
-      $('#id_group').change(function() {
-        this.form.submit();
-      });
+    init: function(inputName, headerName, courses) {
       $('a.item-delete').on('click', function(e) {
         e.preventDefault();
         var clickedLink = $(e.currentTarget);
@@ -22,10 +18,10 @@ define([
             var elementid = clickedLink.data('id');
             $.ajax({
               type: "POST",
-              url: "/local/addteachers/delete.php?id=" + elementid,
+              url: "/local/addteachers/deletegroup.php?id=" + elementid,
               success: function(data) {
-                //console.log(data);
-                window.location.reload(true);
+                console.log(data);
+                //window.location.reload(true);
               }
             });
           });
@@ -33,20 +29,19 @@ define([
         });
       });
 
-      $('a.editenrollink').on('click', function(e) {
+      $('a.add-group').on('click', function(e) {
         e.preventDefault();
         var clickedLink = $(e.currentTarget);
 
         ModalFactory.create({
-          type: ModalEdit.TYPE
+          type: ModalAdd.TYPE
         }).then(function(modal) {
           var root = modal.getRoot();
-          var group = root.find('#inputGroup');
-          groups.forEach(function(item, index) {
-            group.append(new Option(item.groupname, item.id));
+          var course = root.find('#inputCourse');
+          courses.forEach(function(item, index) {
+            course.append(new Option(item.shortname, item.id));
           });
           root.find('.modal-title').html(headerName);
-          root.find('#inputID').val(clickedLink.data('id'));
           modal.show();
         });
       });

@@ -12,7 +12,7 @@ define(['jquery', 'core/notification', 'core/custom_interaction_events', 'core/m
      *
      * @param {object} root The root jQuery element for the modal
      */
-    var ModalEdit = function(root) {
+    var ModalAdd = function(root) {
       Modal.call(this, root);
 
       if (!this.getFooter().find(SELECTORS.SAVE_BUTTON).length) {
@@ -24,16 +24,16 @@ define(['jquery', 'core/notification', 'core/custom_interaction_events', 'core/m
       }
     };
 
-    ModalEdit.TYPE = 'local_addteachers-edit';
-    ModalEdit.prototype = Object.create(Modal.prototype);
-    ModalEdit.prototype.constructor = ModalEdit;
+    ModalAdd.TYPE = 'local_addteachers-addgroup';
+    ModalAdd.prototype = Object.create(Modal.prototype);
+    ModalAdd.prototype.constructor = ModalAdd;
 
     /**
      * Set up all of the event handling for the modal.
      *
      * @method registerEventListeners
      */
-    ModalEdit.prototype.registerEventListeners = function() {
+    ModalAdd.prototype.registerEventListeners = function() {
       // Apply parent event listeners.
       Modal.prototype.registerEventListeners.call(this);
 
@@ -41,20 +41,20 @@ define(['jquery', 'core/notification', 'core/custom_interaction_events', 'core/m
         // Add your logic for when the save button is clicked. This could include the form validation,
         // loading animations, error handling etc.
         var groupval = this.getRoot().find('#inputGroup').val();
-        var idval = this.getRoot().find('#inputID').val();
+        var courseval = this.getRoot().find('#inputCourse').val();
         var alertObject = this.getRoot().find('#user-notifications');
-        //console.log("/local/addteachers/edit.php?id=" + idval + "&group=" + groupval;
+        //console.log("/local/addteachers/addgroup.php?group=" + groupval + "&group=" + courseval;
         $.ajax({
           type: "POST",
-          url: "/local/addteachers/edit.php?id=" + idval + "&group=" + groupval,
+          url: "/local/addteachers/addgroup.php?group=" + groupval + "&course=" + courseval,
           success: function(data) {
             var result = JSON.parse(data);
-            //console.log(result);
+            console.log(result);
             if (result.error == true) {
               alertObject.find('div.alert').html(result.message);
               alertObject.show();
             } else {
-              window.location.reload(true);
+              //window.location.reload(true);
             }
           }
         });
@@ -69,9 +69,9 @@ define(['jquery', 'core/notification', 'core/custom_interaction_events', 'core/m
     // Automatically register with the modal registry the first time this module is imported so that you can create modals
     // of this type using the modal factory.
     if (!registered) {
-      ModalRegistry.register(ModalEdit.TYPE, ModalEdit, 'local_addteachers/modal_edit');
+      ModalRegistry.register(ModalAdd.TYPE, ModalAdd, 'local_addteachers/modal_addgroup');
       registered = true;
     }
 
-    return ModalEdit;
+    return ModalAdd;
   });
