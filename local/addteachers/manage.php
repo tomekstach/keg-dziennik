@@ -27,7 +27,7 @@ require_once($CFG->dirroot . '/local/addteachers/classes/form/edit.php');
 require_once($CFG->dirroot . '/group/lib.php');
 require_once($CFG->dirroot . '/local/addteachers/vendor/llagerlof/moodlerest/MoodleRest.php');
 
-global $USER;
+global $USER, $DB;
 
 require_login();
 
@@ -161,6 +161,24 @@ if ($uform->is_cancelled()) {
         }
 
         if (count($enrolmentsG) > 0) {
+          $contextData = (object) ['contextlevel' => 30, 'instanceid' => (int) $newuser['id'], 'depth' => 2, 'locked' => 0];
+          $contextData->id = $DB->insert_record('context', $contextData);
+          $contextData->path = '/1/' . $contextData->id;
+          $DB->update_record('context', $contextData);
+
+          $instanceData = (object) [
+            'blockname' => 'kegblock',
+            'parentcontextid' => $contextData->id,
+            'showinsubcontexts' => 0,
+            'pagetypepattern' => 'my-index',
+            'defaultregion' => 'side-pre',
+            'defaultweight' => 1,
+            'configdata' => '',
+            'timecreated' => time(),
+            'timemodified' => time()
+          ];
+          $DB->insert_record('block_instances', $instanceData);
+
           $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolmentsG));
           $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolmentsD));
           $response = $MoodleRest->request('core_group_add_group_members', array('members' => $membersG));

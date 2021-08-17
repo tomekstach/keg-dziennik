@@ -30,9 +30,9 @@ class block_kegblock extends block_base
     $this->title = get_string('managestudents', 'block_kegblock');
   }
 
-  function instance_allow_multiple()
+  function applicable_formats()
   {
-    return true;
+    return array('all' => true);
   }
 
   function get_content()
