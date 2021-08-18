@@ -161,21 +161,19 @@ if ($uform->is_cancelled()) {
         }
 
         if (count($enrolmentsG) > 0) {
-          $contextData = (object) ['contextlevel' => 30, 'instanceid' => (int) $newuser['id'], 'depth' => 2, 'locked' => 0];
-          $contextData->id = $DB->insert_record('context', $contextData);
-          $contextData->path = '/1/' . $contextData->id;
-          $DB->update_record('context', $contextData);
+          $contextNewUser = $DB->get_record('context', ['contextlevel' => 30, 'instanceid' => $newuser['id']]);
 
           $instanceData = (object) [
             'blockname' => 'kegblock',
-            'parentcontextid' => $contextData->id,
-            'showinsubcontexts' => 0,
+            'parentcontextid' => (string) $contextNewUser->id,
+            'showinsubcontexts' => '0',
+            'requiredbytheme' => '0',
             'pagetypepattern' => 'my-index',
             'defaultregion' => 'side-pre',
-            'defaultweight' => 1,
-            'configdata' => '',
-            'timecreated' => time(),
-            'timemodified' => time()
+            'defaultweight' => '1',
+            'configdata' => ' ',
+            'timecreated' => (string) time(),
+            'timemodified' => (string) time()
           ];
           $DB->insert_record('block_instances', $instanceData);
 
