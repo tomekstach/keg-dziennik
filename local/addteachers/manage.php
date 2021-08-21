@@ -61,20 +61,23 @@ $PAGE->set_pagetype('my-index');
 
 echo $OUTPUT->header();
 
-echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
-
 $uform = new edit();
+
+$templatecontext->anyTeachers = false;
+$templatecontext->teachers    = [];
 
 //Form processing and displaying is done here
 if ($uform->is_cancelled()) {
   //Handle form cancel operation, if cancel button is present on form
   \core\notification::add(get_string('formwascleared', 'local_addteachers'), \core\output\notification::NOTIFY_WARNING);
+  echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
   $uform->display();
 } else if ($fromform = $uform->get_data()) {
   //In this case you process validated data. $mform->get_data() returns data posted in form.
   //print_r($fromform);
   if ((int) $fromform->group == 0) {
     \core\notification::add(get_string('selectgroup', 'local_addteachers'), \core\output\notification::NOTIFY_ERROR);
+    echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
     $uform->display();
   } else {
     $groups = groups_get_my_groups();
@@ -165,15 +168,14 @@ if ($uform->is_cancelled()) {
 
           $instanceData = (object) [
             'blockname' => 'kegblock',
-            'parentcontextid' => (string) $contextNewUser->id,
-            'showinsubcontexts' => '0',
-            'requiredbytheme' => '0',
+            'parentcontextid' => $contextNewUser->id,
+            'showinsubcontexts' => 0,
             'pagetypepattern' => 'my-index',
             'defaultregion' => 'side-pre',
-            'defaultweight' => '1',
+            'defaultweight' => 1,
             'configdata' => ' ',
-            'timecreated' => (string) time(),
-            'timemodified' => (string) time()
+            'timecreated' => time(),
+            'timemodified' => time()
           ];
           $DB->insert_record('block_instances', $instanceData);
 
@@ -183,23 +185,33 @@ if ($uform->is_cancelled()) {
           $response = $MoodleRest->request('core_group_add_group_members', array('members' => $membersD));
 
           $i = 1;
-          echo 'Dane nauczyciela:<br/>';
           foreach ($users as &$user) {
             foreach ($newusers as $newuser) {
               if ($user['username'] == $newuser['username']) {
-                $user->id = $newuser['id'];
-                echo $i . '. ' . $user['email'] . ': ' . $user['firstname'] . ' ' . $user['lastname'] . '<br/>';
+                $templatecontext->teachers[] = (object) [
+                  'lp' => $i,
+                  'name' => $user['firstname'] . ' ' . $user['lastname'],
+                  'email' => $user['email']
+                ];
                 $i++;
               }
             }
           }
+          if ($i > 1) {
+            $templatecontext->anyTeachers = true;
+          } else {
+            $templatecontext->anyTeachers = false;
+          }
           \core\notification::add(get_string('teacherwasadded', 'local_addteachers'), \core\output\notification::NOTIFY_SUCCESS);
+          echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
         } else {
           \core\notification::add(get_string('errorteachernotadded', 'local_addteachers'), \core\output\notification::NOTIFY_ERROR);
+          echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
           $uform->display();
         }
       } catch (Exception $th) {
         \core\notification::add($th->getMessage(), \core\output\notification::NOTIFY_ERROR);
+        echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
         $uform->display();
       }
     }
@@ -207,6 +219,8 @@ if ($uform->is_cancelled()) {
 } else {
   // this branch is executed if the form is submitted but the data doesn't validate and the form should be redisplayed
   // or on the first display of the form.
+
+  echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
 
   //Set default data (if any)
   //$uform->set_data($toform);

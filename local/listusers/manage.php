@@ -150,7 +150,6 @@ foreach ($students as $student) {
       'id' => $student->id,
       'name' => $student->username,
       'lastaccess' => $student->lastaccess,
-      'group' => $groupname,
       'nrdziennika' => $student->profile_field_nr_dziennika
     ];
   }
@@ -166,7 +165,7 @@ $PAGE->set_pagetype('my-index');
 
 echo $OUTPUT->header();
 
-echo '<h1>' . $templatecontext->headertext . '</h1><p>' . $templatecontext->texttodisplay . '</p>';
+echo '<h1>' . $templatecontext->headertext . '</h1><p>' . $groupname . '</p>';
 
 $uform = new filterUsers();
 $uform->display();

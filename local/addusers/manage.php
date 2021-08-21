@@ -61,23 +61,27 @@ $PAGE->set_pagetype('my-index');
 
 echo $OUTPUT->header();
 
-echo $OUTPUT->render_from_template('local_addusers/manage', $templatecontext);
-
 $uform = new edit();
+
+$templatecontext->anyStudents = false;
+$templatecontext->students    = [];
 
 //Form processing and displaying is done here
 if ($uform->is_cancelled()) {
   //Handle form cancel operation, if cancel button is present on form
   \core\notification::add(get_string('formwascleared', 'local_addusers'), \core\output\notification::NOTIFY_WARNING);
+  echo $OUTPUT->render_from_template('local_addusers/manage', $templatecontext);
   $uform->display();
 } else if ($fromform = $uform->get_data()) {
   //In this case you process validated data. $mform->get_data() returns data posted in form.
   //print_r($fromform);
   if ((int) $fromform->studentsnumber == 0) {
     \core\notification::add(get_string('errornumberofstudents', 'local_addusers'), \core\output\notification::NOTIFY_ERROR);
+    echo $OUTPUT->render_from_template('local_addusers/manage', $templatecontext);
     $uform->display();
   } elseif ((int) $fromform->group == 0) {
     \core\notification::add(get_string('selectgroup', 'local_addusers'), \core\output\notification::NOTIFY_ERROR);
+    echo $OUTPUT->render_from_template('local_addusers/manage', $templatecontext);
     $uform->display();
   } else {
     $groups = groups_get_my_groups();
@@ -155,25 +159,47 @@ if ($uform->is_cancelled()) {
         $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolments));
         $response = $MoodleRest->request('core_group_add_group_members', array('members' => $members));
 
+        $hash     = generateHash();
+        $fileName = __DIR__ . '/tmp/' . $hash . '.csv';
+        $fileUrl  = new moodle_url('/local/addusers/tmp/' . $hash . '.csv');
+        $fp       = fopen($fileName, 'w');
+        fputcsv($fp, ['L.p.', 'Nazwa uzytkownika', 'Haslo']);
+
         $i = 1;
-        echo 'Dane uczniów:<br/>';
         foreach ($users as &$user) {
           foreach ($newusers as $newuser) {
             if ($user['username'] == $newuser['username']) {
-              $user->id = $newuser['id'];
-              echo $i . '. ' . $user['username'] . ': ' . $user['password'] . '<br/>';
+              $templatecontext->students[] = (object) [
+                'lp' => $i,
+                'name' => $user['username'],
+                'password' => $user['password']
+              ];
+              fputcsv($fp, [$i, $user['username'], $user['password']]);
               $i++;
             }
           }
+        }
+
+        fclose($fp);
+
+        if ($i > 1) {
+          $templatecontext->anyStudents = true;
+          $templatecontext->fileurl = $fileUrl;
+        } else {
+          $templatecontext->anyStudents = false;
         }
       }
 
       \core\notification::add(get_string('userswereadded', 'local_addusers'), \core\output\notification::NOTIFY_SUCCESS);
     }
   }
+
+  echo $OUTPUT->render_from_template('local_addusers/manage', $templatecontext);
 } else {
   // this branch is executed if the form is submitted but the data doesn't validate and the form should be redisplayed
   // or on the first display of the form.
+
+  echo $OUTPUT->render_from_template('local_addusers/manage', $templatecontext);
 
   //Set default data (if any)
   //$uform->set_data($toform);
@@ -200,6 +226,11 @@ function generatePassword(): string
   }
 
   return implode($pass);
+}
+
+function generateHash(): string
+{
+  return urlencode(random_string(30));
 }
 
 echo $OUTPUT->footer();

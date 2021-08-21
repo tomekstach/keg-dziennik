@@ -26,3 +26,36 @@
 <h1>{{headertext}}</h1>
 <p>{{texttodisplay}}</p>
 
+{{#anyStudents}}
+<p>Dane uczniów:</p>
+<table class="flexible table table-striped table-hover generaltable generalbox" id="participants">
+  <thead>
+    <tr>
+  <th class="header c1" scope="col">
+    L.p.
+  </th>
+  <th class="header c2" scope="col">
+    Nazwa uzytkownika
+  </th>
+  <th class="header c4" scope="col">
+    Hasło
+  </th>
+</tr>
+</thead>
+<tbody>
+{{/anyStudents}}
+  {{#students}}
+    <tr class="">
+      <th class="cell c1" scope="row">{{lp}}</th>
+      <td class="cell c2">{{name}}</td>
+      <td class="cell c4">{{password}}</td>
+    </tr>
+  {{/students}}
+
+{{#anyStudents}}
+</tbody></table>
+<div class="form-group">
+  <a href="{{fileurl}}" class="btn btn-secondary">Pobierz plik z danymi uczniów</a>
+</div>
+{{/anyStudents}}
+
