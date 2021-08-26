@@ -62,12 +62,12 @@ class filterUsers extends moodleform
           $rolename = $roles[$role]->shortname;
 
           if ($rolename == 'teacher') {
-            foreach ($groupings as $group) {
+            foreach ($groupings as $grouping) {
               $parentGroup = new \stdClass;
               $parentGroup->courseid = $course->id;
               $parentGroup->coursename = $course->shortname;
-              $parentGroup->groupingid = intval(groups_get_grouping_by_name($course->id, $group->name));
-              $parentGroup->schoolid   = intval($group->id);
+              $parentGroup->groupingid = intval(groups_get_grouping_by_name($course->id, $grouping->name));
+              $parentGroup->schoolid   = intval($grouping->id);
 
               if ($parentGroup->groupingid > 0) {
                 $parentGroup->groupingname = groups_get_grouping_name($parentGroup->groupingid);
@@ -80,9 +80,9 @@ class filterUsers extends moodleform
 
       foreach ($parentGroups as &$parentGroup) {
         $parentGroup->groups = groups_get_all_groups($parentGroup->courseid, 0, $parentGroup->groupingid, 'g.*');
-        foreach ($parentGroup->groups as $group) {
-          if ($groups[$group->id]->rolename == 'teacher') {
-            $choices[$parentGroup->courseid . '-' . $group->id] = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $group->name;
+        foreach ($parentGroup->groups as $groupItem) {
+          if ($groups[$groupItem->id]->rolename == 'teacher') {
+            $choices[$parentGroup->courseid . '-' . $groupItem->id] = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $groupItem->name;
           }
         }
       }

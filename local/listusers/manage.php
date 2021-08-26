@@ -91,15 +91,15 @@ if (count($groupings) > 0) {
       $rolename = $roles[$role]->shortname;
 
       if ($rolename == 'teacher') {
-        foreach ($groupings as $group) {
+        foreach ($groupings as $grouping) {
           if ($courseid == 0) {
             $courseid = $course->id;
           }
           $parentGroup = new \stdClass;
           $parentGroup->courseid = $course->id;
           $parentGroup->coursename = $course->shortname;
-          $parentGroup->groupingid = intval(groups_get_grouping_by_name($course->id, $group->name));
-          $parentGroup->schoolid   = intval($group->id);
+          $parentGroup->groupingid = intval(groups_get_grouping_by_name($course->id, $grouping->name));
+          $parentGroup->schoolid   = intval($grouping->id);
 
           if ($parentGroup->groupingid > 0) {
             $parentGroup->groupingname = groups_get_grouping_name($parentGroup->groupingid);
@@ -112,15 +112,15 @@ if (count($groupings) > 0) {
 
   foreach ($parentGroups as &$parentGroup) {
     $parentGroup->groups = groups_get_all_groups($parentGroup->courseid, 0, $parentGroup->groupingid, 'g.*');
-    foreach ($parentGroup->groups as $group) {
-      if ($groups[$group->id]->rolename == 'teacher') {
+    foreach ($parentGroup->groups as $groupItem) {
+      if ($groups[$groupItem->id]->rolename == 'teacher') {
         if ($groupid == 0) {
-          $groupid    = $group->id;
-          $groupname  = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $group->name;
-        } elseif ($group->id == $groupid) {
-          $groupname  = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $group->name;
+          $groupid    = $groupItem->id;
+          $groupname  = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $groupItem->name;
+        } elseif ($groupItem->id == $groupid) {
+          $groupname  = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $groupItem->name;
         }
-        $choices[$parentGroup->courseid . '-' . $group->id] = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $group->name;
+        $choices[$parentGroup->courseid . '-' . $groupItem->id] = $parentGroup->coursename . ', ' . $parentGroup->groupingname . ', ' . $groupItem->name;
       }
     }
   }
