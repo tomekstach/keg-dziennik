@@ -20,8 +20,8 @@ define([
               type: "POST",
               url: "/local/addteachers/deletegroup.php?id=" + elementid,
               success: function(data) {
-                console.log(data);
-                //window.location.reload(true);
+                //console.log(data);
+                window.location.reload(true);
               }
             });
           });
