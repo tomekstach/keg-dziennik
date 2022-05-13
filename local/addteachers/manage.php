@@ -106,9 +106,7 @@ if ($uform->is_cancelled()) {
     }
 
     $tokenurl = $CFG->wwwroot . '/login/token.php?username=wiktor&password=!53W7qbec&service=kegmanager';
-
     $tokenresponse = file_get_contents($tokenurl);
-
     $tokenobject = json_decode($tokenresponse);
 
     if (!empty($tokenobject->error)) {
@@ -119,12 +117,19 @@ if ($uform->is_cancelled()) {
       // Create user's data
       $users = [];
       $users[] = [
+        // username = email
         'username' => $fromform->email,
         'password' =>  $fromform->password,
         'firstname' =>  $fromform->firstname,
         'lastname' => $fromform->lastname,
         'email' => $fromform->email,
         'lang' => 'pl',
+        'preferences' => [
+          0 => [
+            'type' => 'auth_forcepasswordchange',
+            'value' => 1
+          ]
+        ]
       ];
 
       $MoodleRest = new MoodleRest($baseurl, $tokenobject->token);

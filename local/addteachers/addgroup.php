@@ -38,7 +38,7 @@ if (!isguestuser()) {
   if (!empty($tokenobject->error)) {
     \core\notification::add($tokenobject->error, \core\output\notification::NOTIFY_ERROR);
   } else {
-    $groupname      = optional_param('group', '', PARAM_ALPHANUMEXT);
+    $groupname      = optional_param('group', '', PARAM_TEXT);
     $course         = optional_param('course', '', PARAM_ALPHANUMEXT);
     $courseID       = explode('-', $course)[0];
     $parentID       = explode('-', $course)[1];

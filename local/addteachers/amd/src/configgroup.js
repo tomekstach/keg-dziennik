@@ -9,10 +9,10 @@ define([
         var clickedLink = $(e.currentTarget);
         ModalFactory.create({
           type: ModalFactory.types.SAVE_CANCEL,
-          title: 'Delete item',
-          body: 'Do you really want to delete?',
+          title: 'Usuwanie klasy',
+          body: 'Czy na pewno chcesz usunąć tą klasę?',
         }).then(function(modal) {
-          modal.setSaveButtonText('Delete');
+          modal.setSaveButtonText('Usuń');
           var root = modal.getRoot();
           root.on(ModalEvents.save, function() {
             var elementid = clickedLink.data('id');

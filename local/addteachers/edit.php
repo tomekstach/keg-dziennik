@@ -48,7 +48,7 @@ if (!isguestuser()) {
     $group       = (object) ["id" => optional_param('group', 0, PARAM_INT), 'access' => false];
 
     if ($group->id == 0) {
-      echo '{"message": "Error: Group is empty!", "error": true}';
+      echo '{"message": "Error: Nie wybrano klasy!", "error": true}';
     } else {
       foreach ($groups as $item) {
         if ($item->id == $group->id) {
@@ -57,28 +57,18 @@ if (!isguestuser()) {
       }
 
       if ($group->access === false) {
-        echo '{"message": "Error: You do not have access to this group!", "error": true}';
+        echo '{"message": "Error: Nie masz uprawnień do tej klasy!", "error": true}';
       } else {
-        $tokenurl = $CFG->wwwroot . '/login/token.php?username=wiktor&password=!53W7qbec&service=kegmanager';
-
-        $tokenresponse = file_get_contents($tokenurl);
-
-        $tokenobject = json_decode($tokenresponse);
-
         if (!empty($tokenobject->error)) {
           echo '{"message": "' . $tokenobject->error . '", "error": false}';
         } else {
-          $baseurl = $CFG->wwwroot . '/webservice/rest/server.php';
-
-          $MoodleRest = new MoodleRest($baseurl, $tokenobject->token);
-          //$MoodleRest->setDebug();
           try {
             $members[] = [
               'userid' => (int) $teacher->id,
               'groupid' => (int) $group->id
             ];
             $response = $MoodleRest->request('core_group_add_group_members', array('members' => $members));
-            echo '{"message": "Message: Data saved successfully!", "error": false}';
+            echo '{"message": "Message: Dane zostały zapisane poprawnie!", "error": false}';
           } catch (Exception $th) {
             echo '{"message": "' . $th->getMessage() . '", "error": true}';
           }

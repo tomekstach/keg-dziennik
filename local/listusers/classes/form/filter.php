@@ -32,6 +32,7 @@ class filterUsers extends moodleform
     global $CFG, $USER;
 
     $mform = $this->_form; // Don't forget the underscore! 
+    $mform->disable_form_change_checker();
 
     $choices = [];
     $choices[0] = get_string('studentsgroup', 'local_listusers');
