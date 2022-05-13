@@ -17,12 +17,14 @@
 /**
  * Readme file for local customisations
  *
- * @package    local_addusers
+ * @package    local_addteachers
  * @copyright  2021 AstoSoft (https://astosoft.pl)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @var stdClass $plugin
  */
 
-function local_addusers_before_footer()
-{
-}
+defined('MOODLE_INTERNAL') || die;
+
+$plugin->component = 'local_addteachers';
+$plugin->version   = 2021082100;
+$plugin->requires  = 2020110900;

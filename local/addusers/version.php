@@ -23,8 +23,8 @@
  * @var stdClass $plugin
  */
 
- defined('MOODLE_INTERNAL') || die;
+defined('MOODLE_INTERNAL') || die;
 
- $plugin->component = 'local_addusers';
- $plugin->version   = 2021051800;
- $plugin->requires  = 2020110900;
+$plugin->component = 'local_addusers';
+$plugin->version   = 2021062400;
+$plugin->requires  = 2020110900;

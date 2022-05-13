@@ -1,5 +1,5 @@
 <?php
-// This file is part of Moodle Add Users Plugin
+// This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,14 +15,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Readme file for local customisations
+ * Version details
  *
- * @package    local_addusers
+ * @package    block_kegblock
  * @copyright  2021 AstoSoft (https://astosoft.pl)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @var stdClass $plugin
  */
 
-function local_addusers_before_footer()
-{
-}
+defined('MOODLE_INTERNAL') || die();
+
+$plugin->version   = 2021082100;        // The current plugin version (Date: YYYYMMDDXX)
+$plugin->requires  = 2021051100;        // Requires this Moodle version
+$plugin->component = 'block_kegblock';      // Full name of the plugin (used for diagnostics)

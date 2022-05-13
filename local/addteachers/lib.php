@@ -17,12 +17,12 @@
 /**
  * Readme file for local customisations
  *
- * @package    local_addusers
+ * @package    local_addteachers
  * @copyright  2021 AstoSoft (https://astosoft.pl)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @var stdClass $plugin
  */
 
-function local_addusers_before_footer()
+function local_addteachers_before_footer()
 {
 }

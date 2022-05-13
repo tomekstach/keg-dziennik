@@ -1,5 +1,5 @@
 <?php
-// This file is part of Moodle Add Users Plugin
+// This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,14 +15,17 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Readme file for local customisations
+ * Strings for component 'local_listusers', language 'pl', branch 'MOODLE_20_STABLE'
  *
- * @package    local_addusers
- * @copyright  2021 AstoSoft (https://astosoft.pl)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @var stdClass $plugin
+ * @package   local_listusers
+ * @copyright 2021 AstoSoft (https://astosoft.pl)
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-function local_addusers_before_footer()
-{
-}
+$string['localuserheader'] = 'Lista uczniów';
+$string['localusertext'] = 'Lista wszystkich uczniów z podziałem na klasy';
+$string['never'] = 'Nigdy';
+$string['studentsgroup'] = 'Wybierz klasę';
+$string['edit'] = 'Edycja';
+$string['nrdziennika'] = 'Nr ';
+$string['nrdziennikafull'] = 'Numer w dzienniku';

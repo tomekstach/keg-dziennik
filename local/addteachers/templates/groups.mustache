@@ -1,0 +1,66 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_addteachers/groups
+
+
+    Example context (json):
+    {
+
+    }
+}}
+
+{{#anyGroups}}
+<table class="flexible table table-striped table-hover generaltable generalbox" id="participants">
+  <thead>
+    <tr>
+  <th class="header c1" scope="col">
+    Nazwa
+  </th>
+  <th class="header c3" scope="col">
+    Nauczyciele
+  </th>
+  <th class="header c4" scope="col">
+    Uczniowie
+  </th>
+  <th class="header c4" scope="col">
+    Usuń
+  </th>
+</tr>
+</thead>
+<tbody>
+{{/anyGroups}}
+  {{#groups}}
+    <tr class="">
+      <th class="cell c1" scope="row">{{groupname}}</th>
+      <td class="cell c3">{{#teachers}}{{firstname}} {{lastname}}<br/>{{/teachers}}</td>
+      <td class="cell c4">{{#students}}{{username}}<br/>{{/students}}</td>
+      <td class="cell c5">
+        <div>
+    <a href="/local/addteachers/edit.php?id={{id}}" role="button" class="item-delete" data-id="{{id}}" rel="40" data-action="editenrolment" title="Usuń"><i class="icon fa fa-trash fa-fw " title="Usuń klasę" aria-label="Usuń klasę"></i></a>
+</div>
+      </td>
+    </tr>
+  {{/groups}}
+
+{{#anyGroups}}
+</tbody></table>
+{{/anyGroups}}
+
+<div class="form-group">
+  <a href="/local/addteachers/addgroup.php" class="add-group btn btn-secondary">Dodaj grupę</a>
+</div>
