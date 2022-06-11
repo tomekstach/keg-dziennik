@@ -99,7 +99,7 @@ if ($uform->is_cancelled()) {
     // Add group in the selected course for the class (standard group - groups_create_group($data, $editform=false, $editoroptions=null))
     $classData = (object) [
       'name' => clearString($fromform->classname),
-      'courseid' => $fromform->course,
+      'courseid' => (int) $fromform->course,
     ];
     $classID = groups_create_group($classData);
 
@@ -109,7 +109,7 @@ if ($uform->is_cancelled()) {
     // Add group in the 'Dziennik lekcji' for the school (standard group - groups_create_group($data, $editform=false, $editoroptions=null))
     $schoolLessonDiaryData = (object) [
       'name' => clearString($fromform->schoolname),
-      'courseid' => 10,
+      'courseid' => '10',
     ];
     $schoolLessonDiaryID = groups_create_group($schoolLessonDiaryData);
 
