@@ -15,20 +15,26 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Strings for component 'local_addteachers', language 'en', branch 'MOODLE_20_STABLE'
+ * Strings for component 'local_addcoordinator', language 'en', branch 'MOODLE_20_STABLE'
  *
- * @package   local_addteachers
- * @copyright 2021 AstoSoft (https://astosoft.pl)
+ * @package   local_addcoordinator
+ * @copyright 2022 AstoSoft (https://astosoft.pl)
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['addteachers'] = 'KEG Add Teachers';
-$string['pluginname'] = 'KEG Add Teachers';
+$string['addcoordinator'] = 'KEG Add Coordinator';
+$string['pluginname'] = 'KEG Add Coordinator';
 $string['groupname'] = 'Group name';
-$string['studentsgroup'] = 'Choose class';
-$string['missingclass'] = 'Missing class';
-$string['localteacherheader'] = 'Add teacher';
-$string['localteachertext'] = 'This form makes it possible to add a new teacher to the system and assign him / her to a class';
+$string['localcoordinatorheader'] = 'Add coordinator';
+$string['localcoordinatortext'] = 'This form makes it possible to add a new coordinator and school to the system';
+$string['choosecourse'] = 'Choose course';
+$string['missingcourse'] = 'Missing course';
+$string['schoolname'] = 'School name';
+$string['missingschoolname'] = 'Missing school name';
+$string['classname'] = 'Class name';
+$string['missingclassname'] = 'Missing class name';
+$string['missingcourse'] = 'Please select the course!';
+
 $string['formwascleared'] = 'Form was cleared!';
 $string['selectgroup'] = 'Please select the class!';
 $string['teacherwasadded'] = 'Teacher was added to the system!';

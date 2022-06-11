@@ -66,7 +66,7 @@ if (!isguestuser()) {
     }
 
     if ($course->access === false) {
-      echo '{"message": "Error: Nie masz uprawnień do tego modułu!", "error": true}';
+      echo '{"message": "Error: You do not have access to this course!", "error": true}';
     } else {
       foreach ($groups as $item) {
         if ($item->courseid == $course->id and $item->id == $group->id) {
@@ -75,10 +75,10 @@ if (!isguestuser()) {
       }
 
       if ($group->access === false) {
-        echo '{"message": "Error: Nie masz uprawnień do tej klasy!", "error": true}';
+        echo '{"message": "Error: You do not have access to this group!", "error": true}';
       } else {
         if (!isset($students[$student->id])) {
-          echo '{"message": "Error: Ten nauczyciel nie jest przypisany do tej klasy!", "error": true}';
+          echo '{"message": "Error: This teacher is not assigned to this group!", "error": true}';
         } else {
           $members[] = [
             'userid'    => (int) $student->id,

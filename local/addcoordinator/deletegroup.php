@@ -42,52 +42,34 @@ if (!isguestuser()) {
     $MoodleRest   = new MoodleRest($baseurl, $tokenobject->token);
     //$MoodleRest->setDebug();
 
-    $courses  = enrol_get_all_users_courses($USER->id, true, ['id', 'fullname']);
     $groups   = groups_get_my_groups();
 
-    $IDs      = optional_param('id', '', PARAM_ALPHANUMEXT);
+    $group    = (object) ['id' => (int) optional_param('id', '', PARAM_ALPHANUMEXT), 'access' => false];
 
-    $course   = (object) ['id' => explode('-', $IDs)[0], 'access' => false];
-    $group    = (object) ['id' => explode('-', $IDs)[1], 'access' => false];
-    $student  = (object) ['id' => explode('-', $IDs)[2], 'exists' => false];
-
-    foreach ($courses as $item) {
-      if ($item->id == $course->id) {
-        $contextCourse  = context_course::instance($course->id);
-        $roles          = get_user_roles($contextCourse, $USER->id, true);
-        $role           = key($roles);
-        $rolename       = $roles[$role]->shortname;
-
-        if ($rolename == 'teacherkeg') {
-          $course->access = true;
-          $students = get_role_users(4, $contextCourse);
-        }
+    foreach ($groups as $item) {
+      if ($item->id == $group->id) {
+        $group->access = true;
       }
     }
 
-    if ($course->access === false) {
-      echo '{"message": "Error: Nie masz uprawnień do tego modułu!", "error": true}';
+    if ($group->access === false) {
+      echo '{"message": "Error: You do not have access to this group!", "error": true}';
     } else {
-      foreach ($groups as $item) {
-        if ($item->courseid == $course->id and $item->id == $group->id) {
-          $group->access = true;
-        }
-      }
+      $groups[] = [$group->id];
+      // Get students
+      $students = groups_get_members($group->id, $fields = 'u.*', $sort = 'lastname ASC');
 
-      if ($group->access === false) {
-        echo '{"message": "Error: Nie masz uprawnień do tej klasy!", "error": true}';
-      } else {
-        if (!isset($students[$student->id])) {
-          echo '{"message": "Error: Ten nauczyciel nie jest przypisany do tej klasy!", "error": true}';
-        } else {
-          $members[] = [
-            'userid'    => (int) $student->id,
-            'groupid'   => $group->id
-          ];
-          // Run API methods
-          $response = $MoodleRest->request('core_group_delete_group_members', array('members' => $members));
-        }
+      foreach ($students as $student) {
+        $members[] = [
+          'userid'    => (int) $student->id,
+          'groupid'   => $group->id
+        ];
       }
+      // Run API methods
+      // Remove students from this group
+      $response = $MoodleRest->request('core_group_delete_group_members', array('members' => $members));
+      // Delete group
+      $response = $MoodleRest->request('core_group_delete_groups', array('groupids' => $groups));
     }
   }
 }

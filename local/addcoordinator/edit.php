@@ -42,34 +42,16 @@ if (!isguestuser()) {
     $MoodleRest   = new MoodleRest($baseurl, $tokenobject->token);
     //$MoodleRest->setDebug();
 
-    $courses  = enrol_get_all_users_courses($USER->id, true, ['id', 'fullname']);
     $groups   = groups_get_my_groups();
 
-    $IDs      = optional_param('id', '', PARAM_ALPHANUMEXT);
+    $teacher     = (object) ["id" => optional_param('id', '', PARAM_INT), 'exists' => false];
+    $group       = (object) ["id" => optional_param('group', 0, PARAM_INT), 'access' => false];
 
-    $course   = (object) ['id' => explode('-', $IDs)[0], 'access' => false];
-    $group    = (object) ['id' => explode('-', $IDs)[1], 'access' => false];
-    $student  = (object) ['id' => explode('-', $IDs)[2], 'exists' => false];
-
-    foreach ($courses as $item) {
-      if ($item->id == $course->id) {
-        $contextCourse  = context_course::instance($course->id);
-        $roles          = get_user_roles($contextCourse, $USER->id, true);
-        $role           = key($roles);
-        $rolename       = $roles[$role]->shortname;
-
-        if ($rolename == 'teacherkeg') {
-          $course->access = true;
-          $students = get_role_users(4, $contextCourse);
-        }
-      }
-    }
-
-    if ($course->access === false) {
-      echo '{"message": "Error: Nie masz uprawnień do tego modułu!", "error": true}';
+    if ($group->id == 0) {
+      echo '{"message": "Error: Nie wybrano klasy!", "error": true}';
     } else {
       foreach ($groups as $item) {
-        if ($item->courseid == $course->id and $item->id == $group->id) {
+        if ($item->id == $group->id) {
           $group->access = true;
         }
       }
@@ -77,15 +59,19 @@ if (!isguestuser()) {
       if ($group->access === false) {
         echo '{"message": "Error: Nie masz uprawnień do tej klasy!", "error": true}';
       } else {
-        if (!isset($students[$student->id])) {
-          echo '{"message": "Error: Ten nauczyciel nie jest przypisany do tej klasy!", "error": true}';
+        if (!empty($tokenobject->error)) {
+          echo '{"message": "' . $tokenobject->error . '", "error": false}';
         } else {
-          $members[] = [
-            'userid'    => (int) $student->id,
-            'groupid'   => $group->id
-          ];
-          // Run API methods
-          $response = $MoodleRest->request('core_group_delete_group_members', array('members' => $members));
+          try {
+            $members[] = [
+              'userid' => (int) $teacher->id,
+              'groupid' => (int) $group->id
+            ];
+            $response = $MoodleRest->request('core_group_add_group_members', array('members' => $members));
+            echo '{"message": "Message: Dane zostały zapisane poprawnie!", "error": false}';
+          } catch (Exception $th) {
+            echo '{"message": "' . $th->getMessage() . '", "error": true}';
+          }
         }
       }
     }
