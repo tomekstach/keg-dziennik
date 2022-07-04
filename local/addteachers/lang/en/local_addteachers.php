@@ -38,3 +38,4 @@ $string['localgroupsheader'] = 'Class list';
 $string['never'] = 'Never';
 $string['group'] = 'Group';
 $string['edit'] = 'Add group';
+$string['manage'] = 'Teachers list - managing';

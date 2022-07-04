@@ -49,7 +49,8 @@ class block_kegblock extends block_base
 
     if (is_siteadmin()) {
       $this->title = get_string('managecoordinators', 'block_kegblock');
-      $this->content->text = '<a href="' . $CFG->wwwroot . '/local/addcoordinator/manage.php">' . get_string('addcoordinator', 'block_kegblock') . '</a>';
+      $this->content->text = '<a href="' . $CFG->wwwroot . '/local/addcoordinator/manage.php">' . get_string('addcoordinator', 'block_kegblock') . '</a><br/>';
+      $this->content->text .= '<a href="' . $CFG->wwwroot . '/local/addcoordinator/list.php">' . get_string('listcoordinators', 'block_kegblock') . '</a>';
     } else {
 
       $courses  = enrol_get_all_users_courses($USER->id, true, ['id', 'fullname']);

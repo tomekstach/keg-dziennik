@@ -35,3 +35,4 @@ $string['liststudents'] = 'Students List';
 $string['listteachers'] = 'Teachers List';
 $string['managecoordinators'] = 'Coordinators';
 $string['addcoordinator'] = 'Add coordinator';
+$string['listcoordinators'] = 'Coordinators List';

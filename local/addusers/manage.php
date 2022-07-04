@@ -93,111 +93,108 @@ if ($uform->is_cancelled()) {
       }
     }
 
-    $tokenurl = $CFG->wwwroot . '/login/token.php?username=wiktor&password=!53W7qbec&service=kegmanager';
+    $token = get_config('local_addusers', 'apitoken');
+    $baseurl = $CFG->wwwroot . '/webservice/rest/server.php';
 
-    $tokenresponse = file_get_contents($tokenurl);
+    // Generate users data
+    $users = [];
 
-    $tokenobject = json_decode($tokenresponse);
+    // Get first usernumber
+    $groupUsers = groups_get_members($fromform->group, $fields = 'u.*', $sort = 'username ASC');
 
-    if (!empty($tokenobject->error)) {
-      \core\notification::add($tokenobject->error, \core\output\notification::NOTIFY_ERROR);
-    } else {
-      $baseurl = $CFG->wwwroot . '/webservice/rest/server.php';
+    $userNumber = 1;
 
-      // Generate users data
-      $users = [];
-
-      // Get first usernumber
-      $groupUsers = groups_get_members($fromform->group, $fields = 'u.*', $sort = 'username ASC');
-
-      $userNumber = 1;
-
-      foreach ($groupUsers as $member) {
-        if (strpos($member->username, 'g' . $fromform->group . 'u') !== false) {
-          $userNameOld = explode('u', $member->username);
-          if ($userNumber <= (int) $userNameOld[1]) {
-            $userNumber = $userNameOld[1] + 1;
-          }
+    foreach ($groupUsers as $member) {
+      if (strpos($member->username, 'g' . $fromform->group . 'u') !== false) {
+        $userNameOld = explode('u', $member->username);
+        if ($userNumber <= (int) $userNameOld[1]) {
+          $userNumber = $userNameOld[1] + 1;
         }
       }
+    }
 
-      for ($i = 0; $i < (int) $fromform->studentsnumber; $i++) {
-        $username = 'g' . $groups[$fromform->group]->groupid . 'u' . ($userNumber + $i);
-        $users[] = [
-          'username' => $username,
-          'password' =>  generatePassword(),
-          'firstname' =>  'Student',
-          'lastname' => $username,
-          'email' => $username . '@katalystengineering.org',
-          'lang' => 'pl',
+    for ($i = 0; $i < (int) $fromform->studentsnumber; $i++) {
+      $username = 'g' . $groups[$fromform->group]->groupid . 'u' . ($userNumber + $i);
+      $users[] = [
+        'username' => $username,
+        'password' =>  generatePassword(),
+        'firstname' =>  'Student',
+        'lastname' => $username,
+        'email' => $username . '@katalystengineering.org',
+        'lang' => 'pl',
+      ];
+    }
+
+    $MoodleRest = new MoodleRest($baseurl, $tokenobject->token);
+    //$MoodleRest->setDebug();
+    $newusers = $MoodleRest->request('core_user_create_users', array('users' => $users));
+
+    $enrolments = [];
+    $members    = [];
+
+    foreach ($newusers as $newuser) {
+      if ((int) $newuser['id'] > 0) {
+        $enrolments[] = [
+          'roleid' => '5',
+          'userid' => (int) $newuser['id'],
+          'courseid' => $courseID
+        ];
+
+        $members[] = [
+          'userid' => (int) $newuser['id'],
+          'groupid' => $fromform->group
         ];
       }
+    }
 
-      $MoodleRest = new MoodleRest($baseurl, $tokenobject->token);
-      //$MoodleRest->setDebug();
-      $newusers = $MoodleRest->request('core_user_create_users', array('users' => $users));
+    if (count($enrolments) > 0) {
+      $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolments));
+      $response = $MoodleRest->request('core_group_add_group_members', array('members' => $members));
 
-      $enrolments = [];
-      $members    = [];
+      $hash     = generateHash();
+      $fileName = __DIR__ . '/tmp/' . $hash . '.csv';
+      $fileUrl  = new moodle_url('/local/addusers/tmp/' . $hash . '.csv');
+      $fp       = fopen($fileName, 'w');
+      fputcsv($fp, ['L.p.', 'Nazwa uzytkownika', 'Haslo']);
 
-      foreach ($newusers as $newuser) {
-        if ((int) $newuser['id'] > 0) {
-          $enrolments[] = [
-            'roleid' => '5',
-            'userid' => (int) $newuser['id'],
-            'courseid' => $courseID
-          ];
-
-          $members[] = [
-            'userid' => (int) $newuser['id'],
-            'groupid' => $fromform->group
-          ];
-        }
-      }
-
-      if (count($enrolments) > 0) {
-        $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolments));
-        $response = $MoodleRest->request('core_group_add_group_members', array('members' => $members));
-
-        $hash     = generateHash();
-        $fileName = __DIR__ . '/tmp/' . $hash . '.csv';
-        $fileUrl  = new moodle_url('/local/addusers/tmp/' . $hash . '.csv');
-        $fp       = fopen($fileName, 'w');
-        fputcsv($fp, ['L.p.', 'Nazwa uzytkownika', 'Haslo']);
-
-        $i = 1;
-        foreach ($users as &$user) {
-          foreach ($newusers as $newuser) {
-            if ($user['username'] == $newuser['username']) {
-              $templatecontext->students[] = (object) [
-                'lp' => $i,
-                'name' => $user['username'],
-                'password' => $user['password']
-              ];
-              fputcsv($fp, [$i, $user['username'], $user['password']]);
-              $i++;
-            }
+      $i = 1;
+      foreach ($users as &$user) {
+        foreach ($newusers as $newuser) {
+          if ($user['username'] == $newuser['username']) {
+            $templatecontext->students[] = (object) [
+              'lp' => $i,
+              'name' => $user['username'],
+              'password' => $user['password']
+            ];
+            fputcsv($fp, [$i, $user['username'], $user['password']]);
+            $i++;
           }
         }
-
-        fclose($fp);
-
-        if ($i > 1) {
-          $templatecontext->anyStudents = true;
-          $templatecontext->fileurl = $fileUrl;
-        } else {
-          $templatecontext->anyStudents = false;
-        }
       }
 
-      \core\notification::add(get_string('userswereadded', 'local_addusers'), \core\output\notification::NOTIFY_SUCCESS);
+      fclose($fp);
+
+      if ($i > 1) {
+        $templatecontext->anyStudents = true;
+        $templatecontext->fileurl = $fileUrl;
+      } else {
+        $templatecontext->anyStudents = false;
+      }
     }
+
+    \core\notification::add(get_string('userswereadded', 'local_addusers'), \core\output\notification::NOTIFY_SUCCESS);
   }
 
   echo $OUTPUT->render_from_template('local_addusers/manage', $templatecontext);
 } else {
   // this branch is executed if the form is submitted but the data doesn't validate and the form should be redisplayed
   // or on the first display of the form.
+
+  // $tokenurl = $CFG->wwwroot . '/login/token.php?username=&password=&service=kegmanager';
+  // $tokenresponse = file_get_contents($tokenurl);
+  // $tokenobject = json_decode($tokenresponse);
+
+  // print_r($tokenobject);
 
   echo $OUTPUT->render_from_template('local_addusers/manage', $templatecontext);
 

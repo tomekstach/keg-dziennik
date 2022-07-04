@@ -31,7 +31,7 @@ require_login();
 
 $PAGE->set_url(new moodle_url('/local/addcoordinator/list.php'));
 $PAGE->set_title(get_string('localuserheader', 'local_addcoordinator'));
-$PAGE->requires->js_call_amd('local_addcoordinator/modal_edit');
+// $PAGE->requires->js_call_amd('local_addcoordinator/modal_edit');
 
 $templatecontext = (object) [
   'headertext' => get_string('localuserheader', 'local_addcoordinator')
@@ -53,90 +53,36 @@ if (isguestuser()) {  // Force them to see system default, no editing allowed
   $PAGE->set_blocks_editing_capability('moodle/my:manageblocks');
 }
 
-$values     = optional_param('group', '', PARAM_ALPHANUMEXT);
-$courseid   = (int) explode('-', $values)[0];
-$groupid    = (int) explode('-', $values)[1];
+$allSchools = groups_get_all_groups('10');
+$schools = [];
 
-$groupname  = '';
+foreach ($allSchools as $school) {
+  $users = groups_get_members($school->id, $fields = 'u.*', $sort = 'lastname ASC');
+  $contextCourse = context_course::instance('10');
 
-$courses = enrol_get_all_users_courses($USER->id, true, ['id', 'fullname']);
-$groups = groups_get_my_groups();
-$groupings = (object) [];
-$classes = [];
-
-// Find schools from 'dziennik'
-foreach ($groups as &$group) {
-  $contextCourse = context_course::instance($group->courseid);
-  $roles = get_user_roles($contextCourse, $USER->id, true);
-  $role = key($roles);
-  $group->rolename = $roles[$role]->shortname;
-
-  if ($group->courseid == '10') {
-    $groupings = $group;
-  } elseif ($group->rolename == 'teacherkeg') {
-    $classes[] = $group;
-  }
-}
-
-$templatecontext->teachers = [];
-
-
-foreach ($classes as &$class) {
-  $teachers = groups_get_members($class->id, $fields = 'u.*', $sort = 'lastname ASC');
-  $course = get_course($class->courseid);
-  $class->groupname =  $course->shortname . ' - ' . $class->name;
-
-  $contextCourse = context_course::instance($class->courseid);
-
-  foreach ($teachers as $teacher) {
-    profile_load_data($teacher);
-    $roles        = get_user_roles($contextCourse, $teacher->id, true);
+  foreach ($users as $user) {
+    profile_load_data($user);
+    $roles        = get_user_roles($contextCourse, $user->id, true);
     $role         = key($roles);
-
-    if ($roles[$role]->shortname == 'teacher' and !findObjectById($templatecontext->teachers, $teacher->id)) {
-      if ($teacher->lastaccess > 0) {
-        $teacher->lastaccess = date('Y-m-d H:i:s', $teacher->lastaccess);
+    if ($roles[$role]->shortname === 'teacherkeg') {
+      if ($user->lastaccess > 0) {
+        $user->lastaccess = date('Y-m-d H:i:s', $user->lastaccess);
       } else {
-        $teacher->lastaccess = get_string('never', 'local_addcoordinator');
+        $user->lastaccess = get_string('never', 'local_addcoordinator');
       }
-
-      $teacherGroups = groups_get_user_groups($class->courseid, $teacher->id);
-
-      foreach ($teacherGroups as $key => $groupID) {
-        foreach ($groupID as $value) {
-          if (!findObjectById($teacher->groups, $value)) {
-            $group = groups_get_group($value, $fields = '*', $strictness = IGNORE_MISSING);
-            $group->coursename = $course->shortname;
-            $group->teacherid = $teacher->id;
-            $teacher->groups[] = $group;
-          }
-        }
-      }
-
-      $templatecontext->teachers[] = (object) [
-        'id' => $teacher->id,
-        'username' => $teacher->firstname . ' ' . $teacher->lastname,
-        'lastaccess' => $teacher->lastaccess,
-        'groups' => $teacher->groups
-      ];
+      $school->coordinator = $user;
+      $schools[] = $school;
     }
+    unset($roles);
+    unset($role);
   }
 }
 
-$PAGE->requires->js_call_amd('local_addcoordinator/config', 'init', array(get_string('group', 'local_addcoordinator'), get_string('edit', 'local_addcoordinator'), $classes));
+$templatecontext->schools = [];
+$templatecontext->schools = $schools;
 
-$templatecontext->anyTeachers = count($templatecontext->teachers) > 0 ? true : false;
+$templatecontext->anyCoordinators = count($templatecontext->schools) > 0 ? true : false;
 
-function findObjectById($array, $id)
-{
-  foreach ($array as $element) {
-    if ($id == $element->id) {
-      return $element;
-    }
-  }
-
-  return false;
-}
 
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('mydashboard');

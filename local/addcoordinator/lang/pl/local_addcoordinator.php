@@ -34,13 +34,7 @@ $string['missingschoolname'] = 'Pominięto nazwę szkoły';
 $string['classname'] = 'Nazwa klasy';
 $string['missingclassname'] = 'Pominięto nazwę klasy';
 $string['missingcourse'] = 'Proszę wybrać kurs!';
-
-$string['formwascleared'] = 'Formularz został wyczyszczony!';
-$string['selectgroup'] = 'Proszę wybrać klasę!';
-$string['teacherwasadded'] = 'Nauczyciel został dodany do systemu!';
-$string['errorteachernotadded'] = 'BŁĄD: Nauczyciel nie został dodany do systemu!';
-$string['localuserheader'] = 'Lista nauczycieli';
-$string['localgroupsheader'] = 'Lista klas';
+$string['coordinatorwasadded'] = 'Koordynator został dodany do systemu!';
+$string['localuserheader'] = 'Lista koordynatorów';
 $string['never'] = 'Nigdy';
-$string['group'] = 'Grupa';
-$string['edit'] = 'Dodaj grupę';
+$string['manage'] = 'Lista koordynatorów - zarządzanie';

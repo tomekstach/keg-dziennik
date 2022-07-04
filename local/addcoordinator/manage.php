@@ -114,113 +114,118 @@ if ($uform->is_cancelled()) {
     $schoolLessonDiaryID = groups_create_group($schoolLessonDiaryData);
 
     // TODO: Add user account for coordinator - $newusers = $MoodleRest->request('core_user_create_users', array('users' => $users));
-    $tokenurl = $CFG->wwwroot . '/login/token.php?username=wiktor&password=!53W7qbec&service=kegmanager';
-    $tokenresponse = file_get_contents($tokenurl);
-    $tokenobject = json_decode($tokenresponse);
+    $token = get_config('local_addcoordinator', 'apitoken');
+    $baseurl = $CFG->wwwroot . '/webservice/rest/server.php';
 
-    if (!empty($tokenobject->error)) {
-      \core\notification::add($tokenobject->error, \core\output\notification::NOTIFY_ERROR);
-      echo $OUTPUT->render_from_template('local_addcoordinator/manage', $templatecontext);
-      $uform->display();
-    } else {
-      $baseurl = $CFG->wwwroot . '/webservice/rest/server.php';
-
-      // Create user's data
-      $users = [];
-      $users[] = [
-        // username = email
-        'username' => clearString($fromform->email),
-        'password' =>  clearString($fromform->password),
-        'firstname' =>  clearString($fromform->firstname),
-        'lastname' => clearString($fromform->lastname),
-        'email' => clearString($fromform->email),
-        'lang' => 'pl',
-        'preferences' => [
-          0 => [
-            'type' => 'auth_forcepasswordchange',
-            'value' => 1
-          ]
+    // Create user's data
+    $users = [];
+    $users[] = [
+      // username = email
+      'username' => clearString($fromform->email),
+      'password' =>  clearString($fromform->password),
+      'firstname' =>  clearString($fromform->firstname),
+      'lastname' => clearString($fromform->lastname),
+      'email' => clearString($fromform->email),
+      'lang' => 'pl',
+      'preferences' => [
+        0 => [
+          'type' => 'auth_forcepasswordchange',
+          'value' => 1
         ]
-      ];
+      ]
+    ];
 
-      $MoodleRest = new MoodleRest($baseurl, $tokenobject->token);
-      //$MoodleRest->setDebug();
-      try {
-        $newusers = $MoodleRest->request('core_user_create_users', array('users' => $users));
+    $MoodleRest = new MoodleRest($baseurl, $token);
+    //$MoodleRest->setDebug();
+    try {
+      $newusers = $MoodleRest->request('core_user_create_users', array('users' => $users));
 
-        $enrolmentsG  = [];
-        $enrolmentsD  = [];
-        $membersG     = [];
-        $membersD     = [];
+      $enrolmentsG  = [];
+      $enrolmentsD  = [];
+      $membersG     = [];
+      $membersD     = [];
+      $membersC     = [];
 
-        foreach ($newusers as $newuser) {
-          if ((int) $newuser['id'] > 0) {
+      foreach ($newusers as $newuser) {
+        if ((int) $newuser['id'] > 0) {
+          // TODO: Assigne user account (coordinator) coordinator rights in the selected course
+          $enrolmentsG = [[
+            'roleid' => '9',
+            'userid' => (int) $newuser['id'],
+            'courseid' => $fromform->course
+          ]];
+
+          // TODO: Assigne user account (coordinator) coordinator rights in the selected 'Dziennik lekcji' course
+          $enrolmentsD = [[
+            'roleid' => '9',
+            'userid' => (int) $newuser['id'],
+            'courseid' => '10'
+          ]];
+
+          // TODO: Assigne user account (coordinator) to the class group in the selected course - groups_add_member($groupid, $userid)
+          $membersG = [[
+            'userid' => (int) $newuser['id'],
+            'groupid' => $schoolLessonDiaryID
+          ]];
+
+          $membersC = [[
+            'userid' => (int) $newuser['id'],
+            'groupid' => $classID
+          ]];
+
+          // TODO: Assigne user account (coordinator) to the school group in the 'Dziennik lekcji' course - groups_add_member($grouporid, $userorid)
+          $membersD = [[
+            'userid' => (int) $newuser['id'],
+            'groupid' => $schoolLessonDiaryID
+          ]];
+
+          if (count($enrolmentsG) > 0) {
+            $contextNewUser = $DB->get_record('context', ['contextlevel' => CONTEXT_USER, 'instanceid' => $newuser['id']]);
+
+            // TODO: Assigne kegblock to the user account:
+            $instanceData = (object) [
+              'blockname' => 'kegblock',
+              'parentcontextid' => $contextNewUser->id,
+              'showinsubcontexts' => 0,
+              'pagetypepattern' => 'my-index',
+              'defaultregion' => 'side-pre',
+              'defaultweight' => 1,
+              'configdata' => ' ',
+              'timecreated' => time(),
+              'timemodified' => time()
+            ];
+            $DB->insert_record('block_instances', $instanceData);
+
             // TODO: Assigne user account (coordinator) coordinator rights in the selected course
-            $enrolmentsG[] = [
-              'roleid' => '9',
-              'userid' => (int) $newuser['id'],
-              'courseid' => $fromform->course
-            ];
-
+            $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolmentsG));
             // TODO: Assigne user account (coordinator) coordinator rights in the selected 'Dziennik lekcji' course
-            $enrolmentsD[] = [
-              'roleid' => '9',
-              'userid' => (int) $newuser['id'],
-              'courseid' => '10'
-            ];
-
+            $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolmentsD));
+            // TODO: Assigne user account (coordinator) to the school group in the selected course - groups_add_member($groupid, $userid)
+            $response = $MoodleRest->request('core_group_add_group_members', array('members' => $membersG));
             // TODO: Assigne user account (coordinator) to the class group in the selected course - groups_add_member($groupid, $userid)
-            $membersG[] = [
-              'userid' => (int) $newuser['id'],
-              'groupid' => $groupID
-            ];
-
+            $response = $MoodleRest->request('core_group_add_group_members', array('members' => $membersC));
             // TODO: Assigne user account (coordinator) to the school group in the 'Dziennik lekcji' course - groups_add_member($grouporid, $userorid)
-            $membersD[] = [
-              'userid' => (int) $newuser['id'],
-              'groupid' => $groupingID
-            ];
+            $response = $MoodleRest->request('core_group_add_group_members', array('members' => $membersD));
           }
         }
-
-        if (count($enrolmentsG) > 0) {
-          $contextNewUser = $DB->get_record('context', ['contextlevel' => 30, 'instanceid' => $newuser['id']]);
-
-          // TODO: Assigne kegblock to the user account:
-          $instanceData = (object) [
-            'blockname' => 'kegblock',
-            'parentcontextid' => $contextNewUser->id,
-            'showinsubcontexts' => 0,
-            'pagetypepattern' => 'my-index',
-            'defaultregion' => 'side-pre',
-            'defaultweight' => 1,
-            'configdata' => ' ',
-            'timecreated' => time(),
-            'timemodified' => time()
-          ];
-          $DB->insert_record('block_instances', $instanceData);
-
-          // TODO: Assigne user account (coordinator) coordinator rights in the selected course
-          $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolmentsG));
-          // TODO: Assigne user account (coordinator) coordinator rights in the selected 'Dziennik lekcji' course
-          $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolmentsD));
-          // TODO: Assigne user account (coordinator) to the class group in the selected course - groups_add_member($groupid, $userid)
-          $response = $MoodleRest->request('core_group_add_group_members', array('members' => $membersG));
-          // TODO: Assigne user account (coordinator) to the school group in the 'Dziennik lekcji' course - groups_add_member($grouporid, $userorid)
-          $response = $MoodleRest->request('core_group_add_group_members', array('members' => $membersD));
-        }
-
-        // TODO: Force password change
-      } catch (Exception $th) {
-        \core\notification::add($th->getMessage(), \core\output\notification::NOTIFY_ERROR);
-        echo $OUTPUT->render_from_template('local_addcoordinator/manage', $templatecontext);
-        $uform->display();
       }
+      \core\notification::add(get_string('teacherwasadded', 'local_addcoordinator'), \core\output\notification::NOTIFY_SUCCESS);
+      echo $OUTPUT->render_from_template('local_addcoordinator/manage', $templatecontext);
+    } catch (Exception $th) {
+      \core\notification::add($th->getMessage(), \core\output\notification::NOTIFY_ERROR);
+      echo $OUTPUT->render_from_template('local_addcoordinator/manage', $templatecontext);
+      $uform->display();
     }
   }
 } else {
   // this branch is executed if the form is submitted but the data doesn't validate and the form should be redisplayed
   // or on the first display of the form.
+
+  // $tokenurl = $CFG->wwwroot . '/login/token.php?username=&password=&service=kegmanager';
+  // $tokenresponse = file_get_contents($tokenurl);
+  // $tokenobject = json_decode($tokenresponse);
+
+  // print_r($tokenobject);
 
   echo $OUTPUT->render_from_template('local_addcoordinator/manage', $templatecontext);
 

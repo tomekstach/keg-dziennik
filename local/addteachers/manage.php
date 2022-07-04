@@ -105,125 +105,124 @@ if ($uform->is_cancelled()) {
       }
     }
 
-    $tokenurl = $CFG->wwwroot . '/login/token.php?username=wiktor&password=!53W7qbec&service=kegmanager';
-    $tokenresponse = file_get_contents($tokenurl);
-    $tokenobject = json_decode($tokenresponse);
+    $token = get_config('local_addteachers', 'apitoken');
+    $baseurl = $CFG->wwwroot . '/webservice/rest/server.php';
 
-    if (!empty($tokenobject->error)) {
-      \core\notification::add($tokenobject->error, \core\output\notification::NOTIFY_ERROR);
-    } else {
-      $baseurl = $CFG->wwwroot . '/webservice/rest/server.php';
-
-      // Create user's data
-      $users = [];
-      $users[] = [
-        // username = email
-        'username' => $fromform->email,
-        'password' =>  $fromform->password,
-        'firstname' =>  $fromform->firstname,
-        'lastname' => $fromform->lastname,
-        'email' => $fromform->email,
-        'lang' => 'pl',
-        'preferences' => [
-          0 => [
-            'type' => 'auth_forcepasswordchange',
-            'value' => 1
-          ]
+    // Create user's data
+    $users = [];
+    $users[] = [
+      // username = email
+      'username' => $fromform->email,
+      'password' =>  $fromform->password,
+      'firstname' =>  $fromform->firstname,
+      'lastname' => $fromform->lastname,
+      'email' => $fromform->email,
+      'lang' => 'pl',
+      'preferences' => [
+        0 => [
+          'type' => 'auth_forcepasswordchange',
+          'value' => 1
         ]
-      ];
+      ]
+    ];
 
-      $MoodleRest = new MoodleRest($baseurl, $tokenobject->token);
-      //$MoodleRest->setDebug();
-      try {
-        $newusers = $MoodleRest->request('core_user_create_users', array('users' => $users));
+    $MoodleRest = new MoodleRest($baseurl, $token);
+    //$MoodleRest->setDebug();
+    try {
+      $newusers = $MoodleRest->request('core_user_create_users', array('users' => $users));
 
-        $enrolmentsG  = [];
-        $enrolmentsD  = [];
-        $membersG     = [];
-        $membersD     = [];
+      $enrolmentsG  = [];
+      $enrolmentsD  = [];
+      $membersG     = [];
+      $membersD     = [];
 
-        foreach ($newusers as $newuser) {
-          if ((int) $newuser['id'] > 0) {
-            $enrolmentsG[] = [
-              'roleid' => '4',
-              'userid' => (int) $newuser['id'],
-              'courseid' => $courseID
-            ];
-
-            $enrolmentsD[] = [
-              'roleid' => '5',
-              'userid' => (int) $newuser['id'],
-              'courseid' => '10'
-            ];
-
-            $membersG[] = [
-              'userid' => (int) $newuser['id'],
-              'groupid' => $groupID
-            ];
-
-            $membersD[] = [
-              'userid' => (int) $newuser['id'],
-              'groupid' => $groupingID
-            ];
-          }
-        }
-
-        if (count($enrolmentsG) > 0) {
-          $contextNewUser = $DB->get_record('context', ['contextlevel' => 30, 'instanceid' => $newuser['id']]);
-
-          $instanceData = (object) [
-            'blockname' => 'kegblock',
-            'parentcontextid' => $contextNewUser->id,
-            'showinsubcontexts' => 0,
-            'pagetypepattern' => 'my-index',
-            'defaultregion' => 'side-pre',
-            'defaultweight' => 1,
-            'configdata' => ' ',
-            'timecreated' => time(),
-            'timemodified' => time()
+      foreach ($newusers as $newuser) {
+        if ((int) $newuser['id'] > 0) {
+          $enrolmentsG[] = [
+            'roleid' => '4',
+            'userid' => (int) $newuser['id'],
+            'courseid' => $courseID
           ];
-          $DB->insert_record('block_instances', $instanceData);
 
-          $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolmentsG));
-          $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolmentsD));
-          $response = $MoodleRest->request('core_group_add_group_members', array('members' => $membersG));
-          $response = $MoodleRest->request('core_group_add_group_members', array('members' => $membersD));
+          $enrolmentsD[] = [
+            'roleid' => '5',
+            'userid' => (int) $newuser['id'],
+            'courseid' => '10'
+          ];
 
-          $i = 1;
-          foreach ($users as &$user) {
-            foreach ($newusers as $newuser) {
-              if ($user['username'] == $newuser['username']) {
-                $templatecontext->teachers[] = (object) [
-                  'lp' => $i,
-                  'name' => $user['firstname'] . ' ' . $user['lastname'],
-                  'email' => $user['email']
-                ];
-                $i++;
-              }
+          $membersG[] = [
+            'userid' => (int) $newuser['id'],
+            'groupid' => $groupID
+          ];
+
+          $membersD[] = [
+            'userid' => (int) $newuser['id'],
+            'groupid' => $groupingID
+          ];
+        }
+      }
+
+      if (count($enrolmentsG) > 0) {
+        $contextNewUser = $DB->get_record('context', ['contextlevel' => 30, 'instanceid' => $newuser['id']]);
+
+        $instanceData = (object) [
+          'blockname' => 'kegblock',
+          'parentcontextid' => $contextNewUser->id,
+          'showinsubcontexts' => 0,
+          'pagetypepattern' => 'my-index',
+          'defaultregion' => 'side-pre',
+          'defaultweight' => 1,
+          'configdata' => ' ',
+          'timecreated' => time(),
+          'timemodified' => time()
+        ];
+        $DB->insert_record('block_instances', $instanceData);
+
+        $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolmentsG));
+        $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolmentsD));
+        $response = $MoodleRest->request('core_group_add_group_members', array('members' => $membersG));
+        $response = $MoodleRest->request('core_group_add_group_members', array('members' => $membersD));
+
+        $i = 1;
+        foreach ($users as &$user) {
+          foreach ($newusers as $newuser) {
+            if ($user['username'] == $newuser['username']) {
+              $templatecontext->teachers[] = (object) [
+                'lp' => $i,
+                'name' => $user['firstname'] . ' ' . $user['lastname'],
+                'email' => $user['email']
+              ];
+              $i++;
             }
           }
-          if ($i > 1) {
-            $templatecontext->anyTeachers = true;
-          } else {
-            $templatecontext->anyTeachers = false;
-          }
-          \core\notification::add(get_string('teacherwasadded', 'local_addteachers'), \core\output\notification::NOTIFY_SUCCESS);
-          echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
-        } else {
-          \core\notification::add(get_string('errorteachernotadded', 'local_addteachers'), \core\output\notification::NOTIFY_ERROR);
-          echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
-          $uform->display();
         }
-      } catch (Exception $th) {
-        \core\notification::add($th->getMessage(), \core\output\notification::NOTIFY_ERROR);
+        if ($i > 1) {
+          $templatecontext->anyTeachers = true;
+        } else {
+          $templatecontext->anyTeachers = false;
+        }
+        \core\notification::add(get_string('teacherwasadded', 'local_addteachers'), \core\output\notification::NOTIFY_SUCCESS);
+        echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
+      } else {
+        \core\notification::add(get_string('errorteachernotadded', 'local_addteachers'), \core\output\notification::NOTIFY_ERROR);
         echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
         $uform->display();
       }
+    } catch (Exception $th) {
+      \core\notification::add($th->getMessage(), \core\output\notification::NOTIFY_ERROR);
+      echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
+      $uform->display();
     }
   }
 } else {
   // this branch is executed if the form is submitted but the data doesn't validate and the form should be redisplayed
   // or on the first display of the form.
+
+  // $tokenurl = $CFG->wwwroot . '/login/token.php?username=&password=&service=kegmanager';
+  // $tokenresponse = file_get_contents($tokenurl);
+  // $tokenobject = json_decode($tokenresponse);
+
+  // print_r($tokenobject);
 
   echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
 

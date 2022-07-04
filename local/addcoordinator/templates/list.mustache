@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template local_addteachers/list
+    @template local_addcoordinator/list
 
 
     Example context (json):
@@ -24,7 +24,7 @@
     }
 }}
 
-{{#anyTeachers}}
+{{#anyCoordinators}}
 <table class="flexible table table-striped table-hover generaltable generalbox" id="participants">
   <thead>
     <tr>
@@ -32,37 +32,29 @@
     Imię i nazwisko
   </th>
   <th class="header c3" scope="col">
-    Klasy
+    Szkoła
   </th>
   <th class="header c4" scope="col">
     Ostatni dostęp do kursu
   </th>
-  <th class="header c4" scope="col">
-    Działania
-  </th>
 </tr>
 </thead>
 <tbody>
-{{/anyTeachers}}
-  {{#teachers}}
+{{/anyCoordinators}}
+  {{#schools}}
     <tr class="">
       <th class="cell c1" scope="row">
-        <img src="/theme/image.php/school/core/1624652259/u/f2" class="userpicture defaultuserpic" alt="Obraz {{username}}" title="Obraz {{username}}" width="35" height="35">{{username}}
+        <img src="/theme/image.php/school/core/1624652259/u/f2" class="userpicture defaultuserpic" alt="Obraz {{coordinator.firstname}} {{coordinator.lastname}}" title="Obraz {{coordinator.firstname}} {{coordinator.lastname}}" width="35" height="35">{{coordinator.firstname}} {{coordinator.lastname}}
       </th>
-      <td class="cell c3">{{#groups}}{{coursename}} {{name}} <a href="/enrol/unenroluser.php?page=0&amp;perpage=20&amp;contextid=0&amp;id=6&amp;newcourse&amp;ue=40" data-id="{{courseid}}-{{id}}-{{teacherid}}" role="button" class="item-delete" rel="40" data-action="unenrol" title="Wypisz z kursu"><i class="icon fa fa-trash fa-fw " title="Wypisz z kursu" aria-label="Wypisz z kursu"></i></a><br/>{{/groups}}</td>
-      <td class="cell c4">{{lastaccess}}</td>
-      <td class="cell c5">
-        <div>
-    <a href="/local/addteachers/edit.php?id={{id}}" role="button" class="editenrollink" data-id="{{id}}" rel="40" data-action="editenrolment" title="Dodaj"><i class="icon fa fa-cog fa-fw " title="Dodaj klasę" aria-label="Dodaj klasę"></i></a>
-</div>
-      </td>
+      <td class="cell c3">{{name}}</td>
+      <td class="cell c4">{{coordinator.lastaccess}}</td>
     </tr>
-  {{/teachers}}
+  {{/schools}}
 
-{{#anyTeachers}}
+{{#anyCoordinators}}
 </tbody></table>
-{{/anyTeachers}}
+{{/anyCoordinators}}
 
 <div class="form-group">
-  <a href="/local/addteachers/manage.php" class="btn btn-secondary">Dodaj nauczyciela</a>
+  <a href="/local/addcoordinator/manage.php" class="btn btn-secondary">Dodaj koordynatora</a>
 </div>

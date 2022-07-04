@@ -32,3 +32,4 @@ $string['formwascleared'] = 'Formularz został wyczyszczony!';
 $string['selectgroup'] = 'Proszę wybrać klasę!';
 $string['errornumberofstudents'] = 'Liczba uczniów musi być większa od zera!';
 $string['userswereadded'] = 'Uczniowie zostali dodani do systemu!';
+$string['manage'] = 'Dodawanie uczniów - zarządzanie';
