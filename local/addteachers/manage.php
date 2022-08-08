@@ -131,6 +131,10 @@ if ($uform->is_cancelled()) {
     try {
       $newusers = $MoodleRest->request('core_user_create_users', array('users' => $users));
 
+      if (array_key_exists('exception', $newusers)) {
+        throw new Exception($newusers['message']);
+      }
+
       $enrolmentsG  = [];
       $enrolmentsD  = [];
       $membersG     = [];

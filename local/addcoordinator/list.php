@@ -22,8 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__ . '/../../config.php');
-require_once($CFG->dirroot . '/group/lib.php');
+require_once __DIR__ . '/../../config.php';
+require_once $CFG->dirroot . '/group/lib.php';
 
 global $USER, $PAGE;
 
@@ -31,58 +31,59 @@ require_login();
 
 $PAGE->set_url(new moodle_url('/local/addcoordinator/list.php'));
 $PAGE->set_title(get_string('localuserheader', 'local_addcoordinator'));
-// $PAGE->requires->js_call_amd('local_addcoordinator/modal_edit');
+$PAGE->requires->js_call_amd('local_addcoordinator/modal_edit');
 
 $templatecontext = (object) [
-  'headertext' => get_string('localuserheader', 'local_addcoordinator')
+    'headertext' => get_string('localuserheader', 'local_addcoordinator'),
 ];
 
-if (isguestuser()) {  // Force them to see system default, no editing allowed
-  // If guests are not allowed my moodle, send them to front page.
-  if (empty($CFG->allowguestmymoodle)) {
-    redirect(new moodle_url('/', array('redirect' => 0)));
-  }
+if (isguestuser()) { // Force them to see system default, no editing allowed
+    // If guests are not allowed my moodle, send them to front page.
+    if (empty($CFG->allowguestmymoodle)) {
+        redirect(new moodle_url('/', array('redirect' => 0)));
+    }
 
-  $userid = null;
-  $USER->editing = $edit = 0;  // Just in case
-  $context = context_system::instance();
-  $PAGE->set_blocks_editing_capability('moodle/my:configsyspages');  // unlikely :)
-} else {        // We are trying to view or edit our own My Moodle page
-  $userid = $USER->id;  // Owner of the page
-  $context = context_user::instance($USER->id);
-  $PAGE->set_blocks_editing_capability('moodle/my:manageblocks');
+    $userid = null;
+    $USER->editing = $edit = 0; // Just in case
+    $context = context_system::instance();
+    $PAGE->set_blocks_editing_capability('moodle/my:configsyspages'); // unlikely :)
+} else { // We are trying to view or edit our own My Moodle page
+    $userid = $USER->id; // Owner of the page
+    $context = context_user::instance($USER->id);
+    $PAGE->set_blocks_editing_capability('moodle/my:manageblocks');
 }
 
 $allSchools = groups_get_all_groups('10');
 $schools = [];
 
 foreach ($allSchools as $school) {
-  $users = groups_get_members($school->id, $fields = 'u.*', $sort = 'lastname ASC');
-  $contextCourse = context_course::instance('10');
+    $users = groups_get_members($school->id, $fields = 'u.*', $sort = 'lastname ASC');
+    $contextCourse = context_course::instance('10');
 
-  foreach ($users as $user) {
-    profile_load_data($user);
-    $roles        = get_user_roles($contextCourse, $user->id, true);
-    $role         = key($roles);
-    if ($roles[$role]->shortname === 'teacherkeg') {
-      if ($user->lastaccess > 0) {
-        $user->lastaccess = date('Y-m-d H:i:s', $user->lastaccess);
-      } else {
-        $user->lastaccess = get_string('never', 'local_addcoordinator');
-      }
-      $school->coordinator = $user;
-      $schools[] = $school;
+    foreach ($users as $user) {
+        profile_load_data($user);
+        $roles = get_user_roles($contextCourse, $user->id, true);
+        $role = key($roles);
+        if ($roles[$role]->shortname === 'teacherkeg') {
+            if ($user->lastaccess > 0) {
+                $user->lastaccess = date('Y-m-d H:i:s', $user->lastaccess);
+            } else {
+                $user->lastaccess = get_string('never', 'local_addcoordinator');
+            }
+            $school->coordinator = $user;
+            $schools[] = $school;
+        }
+        unset($roles);
+        unset($role);
     }
-    unset($roles);
-    unset($role);
-  }
 }
 
 $templatecontext->schools = [];
 $templatecontext->schools = $schools;
 
-$templatecontext->anyCoordinators = count($templatecontext->schools) > 0 ? true : false;
+$PAGE->requires->js_call_amd('local_addcoordinator/config', 'init', array(get_string('editcoordinator', 'local_addcoordinator')));
 
+$templatecontext->anyCoordinators = count($templatecontext->schools) > 0 ? true : false;
 
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('mydashboard');

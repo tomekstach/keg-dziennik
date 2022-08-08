@@ -73,6 +73,7 @@ $uform = new edit();
 $templatecontext->anyTeachers = false;
 $templatecontext->teachers    = [];
 
+
 //Form processing and displaying is done here
 if ($uform->is_cancelled()) {
   //Handle form cancel operation, if cancel button is present on form
@@ -139,6 +140,10 @@ if ($uform->is_cancelled()) {
     //$MoodleRest->setDebug();
     try {
       $newusers = $MoodleRest->request('core_user_create_users', array('users' => $users));
+
+      if (array_key_exists('exception', $newusers)) {
+        throw new Exception($newusers['message']);
+      }
 
       $enrolmentsG  = [];
       $enrolmentsD  = [];
@@ -209,7 +214,7 @@ if ($uform->is_cancelled()) {
           }
         }
       }
-      \core\notification::add(get_string('teacherwasadded', 'local_addcoordinator'), \core\output\notification::NOTIFY_SUCCESS);
+      \core\notification::add(get_string('coordinatorwasadded', 'local_addcoordinator'), \core\output\notification::NOTIFY_SUCCESS);
       echo $OUTPUT->render_from_template('local_addcoordinator/manage', $templatecontext);
     } catch (Exception $th) {
       \core\notification::add($th->getMessage(), \core\output\notification::NOTIFY_ERROR);
@@ -227,7 +232,7 @@ if ($uform->is_cancelled()) {
 
   // print_r($tokenobject);
 
-  echo $OUTPUT->render_from_template('local_addcoordinator/manage', $templatecontext);
+  // echo $OUTPUT->render_from_template('local_addcoordinator/manage', $templatecontext);
 
   $uform->display();
 }

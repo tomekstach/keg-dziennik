@@ -37,6 +37,9 @@
   <th class="header c4" scope="col">
     Ostatni dostęp do kursu
   </th>
+  <th class="header c4" scope="col">
+    Działania
+  </th>
 </tr>
 </thead>
 <tbody>
@@ -48,6 +51,11 @@
       </th>
       <td class="cell c3">{{name}}</td>
       <td class="cell c4">{{coordinator.lastaccess}}</td>
+      <td class="cell c4">
+        <div>
+          <a href="/local/addcoordinator/edit.php?id={{coordinator.id}}&firstname={{coordinator.firstname}}&lastname={{coordinator.lastname}}&email={{coordinator.email}}" role="button" class="editenrollink" data-id="{{coordinator.id}}" data-firstname="{{coordinator.firstname}}" data-lastname="{{coordinator.lastname}}" data-email="{{coordinator.email}}" rel="40" data-action="editenrolment" title="Edytuj"><i class="icon fa fa-cog fa-fw " title="Edytuj" aria-label="Edytuj dane"></i></a>
+        </div>
+      </td>
     </tr>
   {{/schools}}
 
