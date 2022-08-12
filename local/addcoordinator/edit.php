@@ -46,14 +46,47 @@ if (!isguestuser()) {
     $userObj->firstname = (string) optional_param('firstname', 0, PARAM_TEXT);
     $userObj->lastname = (string) optional_param('lastname', 0, PARAM_TEXT);
     $userObj->email = (string) optional_param('email', 0, PARAM_EMAIL);
-    // $coordinator->password = (string) optional_param('password', 0, PARAM_TEXT);
+    $password = (string) optional_param('password', 0, PARAM_TEXT);
 
     // print_r($userObj);
 
-    // Update user with new profile data.
-    user_update_user($userObj, false);
+    $errmsg = '';
 
-    echo '{"message": "Message: Dane zostały zapisane poprawnie!", "error": false}';
+    if (strlen($userObj->firstname) < 2) {
+        $errmsg = '{"message": "Error: Zła wartość w polu imię!", "error": true}';
+    }
+
+    if (strlen($userObj->lastname) < 2) {
+        $errmsg = '{"message": "Error: Zła wartość w polu nazwisko!", "error": true}';
+    }
+
+    if (!filter_var($userObj->email, FILTER_VALIDATE_EMAIL)) {
+        $errmsg = '{"message": "Error: Zła wartość w polu email!", "error": true}';
+    }
+
+    if (!check_consecutive_identical_characters($password, $CFG->maxconsecutiveidentchars)) {
+        $errmsg = '{"message":"' . get_string('errormaxconsecutiveidentchars', 'auth', $CFG->maxconsecutiveidentchars) . '", "error": true}';
+    }
+
+    if (strlen($password) > 1 and $errmsg === '') {
+        if (!empty($CFG->additional_password_policy_checks_function)) {
+            call_user_func_array($CFG->additional_password_policy_checks_function,
+                array($password, &$errmsg));
+        }
+
+        if ($errmsg !== '') {
+            $errmsg = '{"message":"' . (string) $errmsg . '", "error": true}';
+        }
+    }
+
+    if ($errmsg === '') {
+        // Update user with new profile data.
+        user_update_user($userObj, false);
+
+        echo '{"message": "Message: Dane zostały zapisane poprawnie!", "error": false}';
+    } else {
+        echo $errmsg;
+    }
 
     // if ($group->id == 0) {
     //     echo '{"message": "Error: Nie wybrano klasy!", "error": true}';
