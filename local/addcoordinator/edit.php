@@ -23,8 +23,6 @@
  */
 
 require_once __DIR__ . '/../../config.php';
-// require_once $CFG->dirroot . '/group/lib.php';
-// require_once $CFG->dirroot . '/local/addusers/vendor/llagerlof/moodlerest/MoodleRest.php';\
 require_once $CFG->dirroot . '/user/lib.php';
 
 global $USER, $PAGE, $DB;
@@ -32,21 +30,17 @@ global $USER, $PAGE, $DB;
 require_login();
 
 if (!isguestuser()) {
-    // $token = get_config('local_addcoordinator', 'apitoken');
-    // $baseurl = $CFG->wwwroot . '/webservice/rest/server.php';
-    // $MoodleRest = new MoodleRest($baseurl, $tokenobject->token);
-    //$MoodleRest->setDebug();
-
-    // $groups = groups_get_my_groups();
-
     $userid = optional_param('id', '', PARAM_INT);
     $userObj = $DB->get_record('user', array('id' => $userid));
+    $user = null;
 
-    // $coordinator = (object) ["userid" => optional_param('id', '', PARAM_INT), 'exists' => false];
     $userObj->firstname = (string) optional_param('firstname', 0, PARAM_TEXT);
     $userObj->lastname = (string) optional_param('lastname', 0, PARAM_TEXT);
-    $userObj->email = (string) optional_param('email', 0, PARAM_EMAIL);
-    $password = (string) optional_param('password', 0, PARAM_TEXT);
+    $userObj->email = trim((string) optional_param('email', 0, PARAM_EMAIL));
+    if ($userObj->username !== $userObj->email) {
+        $userObj->username = $userObj->email;
+        $user = $DB->get_record('user', array('username' => $userObj->username, 'auth' => 'manual'));
+    }
 
     // print_r($userObj);
 
@@ -60,23 +54,8 @@ if (!isguestuser()) {
         $errmsg = '{"message": "Error: Zła wartość w polu nazwisko!", "error": true}';
     }
 
-    if (!filter_var($userObj->email, FILTER_VALIDATE_EMAIL)) {
+    if (!validate_email($userObj->email) or is_object($user)) {
         $errmsg = '{"message": "Error: Zła wartość w polu email!", "error": true}';
-    }
-
-    if (!check_consecutive_identical_characters($password, $CFG->maxconsecutiveidentchars)) {
-        $errmsg = '{"message":"' . get_string('errormaxconsecutiveidentchars', 'auth', $CFG->maxconsecutiveidentchars) . '", "error": true}';
-    }
-
-    if (strlen($password) > 1 and $errmsg === '') {
-        if (!empty($CFG->additional_password_policy_checks_function)) {
-            call_user_func_array($CFG->additional_password_policy_checks_function,
-                array($password, &$errmsg));
-        }
-
-        if ($errmsg !== '') {
-            $errmsg = '{"message":"' . (string) $errmsg . '", "error": true}';
-        }
     }
 
     if ($errmsg === '') {
@@ -87,33 +66,4 @@ if (!isguestuser()) {
     } else {
         echo $errmsg;
     }
-
-    // if ($group->id == 0) {
-    //     echo '{"message": "Error: Nie wybrano klasy!", "error": true}';
-    // } else {
-    //     foreach ($groups as $item) {
-    //         if ($item->id == $group->id) {
-    //             $group->access = true;
-    //         }
-    //     }
-
-    //     if ($group->access === false) {
-    //         echo '{"message": "Error: Nie masz uprawnień do tej klasy!", "error": true}';
-    //     } else {
-    //         if (!empty($tokenobject->error)) {
-    //             echo '{"message": "' . $tokenobject->error . '", "error": false}';
-    //         } else {
-    //             try {
-    //                 $members[] = [
-    //                     'userid' => (int) $coordinator->id,
-    //                     'groupid' => (int) $group->id,
-    //                 ];
-    //                 $response = $MoodleRest->request('core_group_add_group_members', array('members' => $members));
-    //                 echo '{"message": "Message: Dane zostały zapisane poprawnie!", "error": false}';
-    //             } catch (Exception $th) {
-    //                 echo '{"message": "' . $th->getMessage() . '", "error": true}';
-    //             }
-    //         }
-    //     }
-    // }
 }
