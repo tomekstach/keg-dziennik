@@ -40,3 +40,5 @@ $string['localuserheader'] = 'Lista koordynatorów';
 $string['never'] = 'Nigdy';
 $string['manage'] = 'Lista koordynatorów - zarządzanie';
 $string['editcoordinator'] = 'Edycja danych koordynatora';
+$string['addenrol'] = 'Przypisanie kursu do koordynatora';
+$string['coursename'] = 'Kurs';

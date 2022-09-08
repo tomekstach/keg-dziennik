@@ -34,6 +34,9 @@
   <th class="header c3" scope="col">
     Szkoła
   </th>
+  <th class="header c3" scope="col">
+    Kursy
+  </th>
   <th class="header c4" scope="col">
     Ostatni dostęp do kursu
   </th>
@@ -49,11 +52,17 @@
       <th class="cell c1" scope="row">
         <img src="/theme/image.php/school/core/1624652259/u/f2" class="userpicture defaultuserpic" alt="Obraz {{coordinator.firstname}} {{coordinator.lastname}}" title="Obraz {{coordinator.firstname}} {{coordinator.lastname}}" width="35" height="35">{{coordinator.firstname}} {{coordinator.lastname}}
       </th>
-      <td class="cell c3">{{name}}</td>
+      <td class="cell c3">{{schoolName}}</td>
+      <td class="cell c3">
+      {{#courses}}
+        {{courseName}}<br/>
+      {{/courses}}
+      </td>
       <td class="cell c4">{{coordinator.lastaccess}}</td>
       <td class="cell c4">
         <div>
-          <a href="/local/addcoordinator/edit.php?id={{coordinator.id}}&firstname={{coordinator.firstname}}&lastname={{coordinator.lastname}}&email={{coordinator.email}}" role="button" class="editenrollink" data-id="{{coordinator.id}}" data-firstname="{{coordinator.firstname}}" data-lastname="{{coordinator.lastname}}" data-email="{{coordinator.email}}" rel="40" data-action="editenrolment" title="Edytuj"><i class="icon fa fa-cog fa-fw " title="Edytuj" aria-label="Edytuj dane"></i></a>
+          <a href="/local/addcoordinator/edit.php?id={{coordinator.id}}&firstname={{coordinator.firstname}}&lastname={{coordinator.lastname}}&email={{coordinator.email}}" role="button" class="editcoordinatorlink" data-id="{{coordinator.id}}" data-firstname="{{coordinator.firstname}}" data-lastname="{{coordinator.lastname}}" data-email="{{coordinator.email}}" rel="40" data-action="editenrolment" title="Edytuj"><i class="icon fa fa-cog fa-fw " title="Edytuj" aria-label="Edytuj dane"></i></a>
+          <a href="/local/addcoordinator/addenrol.php?id={{coordinator.id}}&school={{schoolName}}" role="button" class="addenrollink" data-id="{{coordinator.id}}" data-school="{{schoolName}}"><i class="icon fa fa-pencil fa-fw " title="Dodaj kurs koordynatorowi" aria-label="Dodaj kurs koordynatorowi"></i></a>
         </div>
       </td>
     </tr>

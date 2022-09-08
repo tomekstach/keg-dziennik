@@ -32,9 +32,12 @@ require_login();
 $PAGE->set_url(new moodle_url('/local/addcoordinator/list.php'));
 $PAGE->set_title(get_string('localuserheader', 'local_addcoordinator'));
 $PAGE->requires->js_call_amd('local_addcoordinator/modal_edit');
+$PAGE->requires->js_call_amd('local_addcoordinator/modal_addenrol');
 
 $templatecontext = (object) [
     'headertext' => get_string('localuserheader', 'local_addcoordinator'),
+    'classname' => get_string('classname', 'local_addcoordinator'),
+    'coursename' => get_string('coursename', 'local_addcoordinator'),
 ];
 
 if (isguestuser()) { // Force them to see system default, no editing allowed
@@ -59,6 +62,8 @@ $schools = [];
 foreach ($allSchools as $school) {
     $users = groups_get_members($school->id, $fields = 'u.*', $sort = 'lastname ASC');
     $contextCourse = context_course::instance('10');
+    $school->schoolName = $school->name;
+    unset($school->name);
 
     foreach ($users as $user) {
         profile_load_data($user);
@@ -69,6 +74,14 @@ foreach ($allSchools as $school) {
                 $user->lastaccess = date('Y-m-d H:i:s', $user->lastaccess);
             } else {
                 $user->lastaccess = get_string('never', 'local_addcoordinator');
+            }
+            $courses = enrol_get_all_users_courses($user->id, true, ['id', 'fullname']);
+            $school->courses = [];
+            foreach ($courses as $course) {
+                $school->courses[] = (object) [
+                    'id' => $course->id,
+                    'courseName' => $course->shortname,
+                ];
             }
             $school->coordinator = $user;
             $schools[] = $school;
@@ -81,7 +94,20 @@ foreach ($allSchools as $school) {
 $templatecontext->schools = [];
 $templatecontext->schools = $schools;
 
+unset($courses);
+
+$courses = get_courses();
+
+foreach ($courses as $key => $course) {
+    if ($course->visible != 1 or $course->category <= 0 or $course->category == 4) {
+        unset($courses[$key]);
+    }
+}
+
+$courses = array_values($courses);
+
 $PAGE->requires->js_call_amd('local_addcoordinator/config', 'init', array(get_string('editcoordinator', 'local_addcoordinator')));
+$PAGE->requires->js_call_amd('local_addcoordinator/config_addenrol', 'init', array(get_string('addenrol', 'local_addcoordinator'), get_string('classname', 'local_addcoordinator'), get_string('coursename', 'local_addcoordinator'), $courses));
 
 $templatecontext->anyCoordinators = count($templatecontext->schools) > 0 ? true : false;
 

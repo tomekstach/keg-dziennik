@@ -40,3 +40,5 @@ $string['localuserheader'] = 'Coordinators list';
 $string['never'] = 'Never';
 $string['manage'] = 'Coordinators list - managing';
 $string['editcoordinator'] = 'Editing coordinator\'s data';
+$string['addenrol'] = 'Assigne course to the coordinator';
+$string['coursename'] = 'Course';
