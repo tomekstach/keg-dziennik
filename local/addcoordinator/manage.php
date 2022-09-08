@@ -119,6 +119,18 @@ if ($uform->is_cancelled()) {
             ];
             $schoolLessonDiaryID = groups_create_group($schoolLessonDiaryData);
 
+            if (strlen($fromform->firstname) < 2) {
+                throw new Exception('Zła wartość w polu imię!');
+            }
+
+            if (strlen($fromform->lastname) < 2) {
+                throw new Exception('Zła wartość w polu nazwisko!');
+            }
+
+            if (!validate_email($fromform->email) or is_object($user)) {
+                throw new Exception('Zła wartość w polu email!');
+            }
+
             // Create user's data
             $user = [
                 // username = email
@@ -137,6 +149,10 @@ if ($uform->is_cancelled()) {
             ];
 
             $userID = (int) user_create_user($user);
+
+            if ($userID === 0) {
+                throw new Exception('Błąd przy dodawaniu użytkownika - skontaktuj się z administratorem!');
+            }
 
             enrol_try_internal_enrol($fromform->course, $userID, 9);
 
