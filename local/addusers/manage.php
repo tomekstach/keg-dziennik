@@ -124,9 +124,11 @@ if ($uform->is_cancelled()) {
                 'mnethostid' => $CFG->mnet_localhost_id,
             ];
 
-            $user['id'] = (int) user_create_user($user);
+            $user['id'] = (int) user_create_user($user, false, false);
+
             \core\event\user_created::create_from_userid($user['id'])->trigger();
             set_user_preference('auth_forcepasswordchange', 1, $user['id']);
+
             enrol_try_internal_enrol($courseID, $user['id'], 5);
             groups_add_member((int) $fromform->group, $user['id']);
             $users[] = $user;
