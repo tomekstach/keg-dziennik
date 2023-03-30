@@ -18,7 +18,7 @@
  * Form for editing HTML block instances.
  *
  * @package   block_kegblock
- * @copyright 2021 AstoSoft (https://astosoft.pl)
+ * @copyright 2022 AstoSoft (https://astosoft.pl)
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -47,24 +47,33 @@ class block_kegblock extends block_base
     $this->content->text = '';
     $this->content->footer = '';
 
-    $courses  = enrol_get_all_users_courses($USER->id, true, ['id', 'fullname']);
-    $groups   = groups_get_my_groups();
+    if (is_siteadmin()) {
+      $this->title = get_string('managecoordinators', 'block_kegblock');
+      $this->content->text = '<a href="' . $CFG->wwwroot . '/local/addcoordinator/manage.php">' . get_string('addcoordinator', 'block_kegblock') . '</a><br/>';
+      $this->content->text .= '<a href="' . $CFG->wwwroot . '/local/addcoordinator/list.php">' . get_string('listcoordinators', 'block_kegblock') . '</a>';
+    } else {
 
-    foreach ($courses as $course) {
-      $context = context_course::instance($course->id);
-      $roles = get_user_roles($context, $USER->id, true);
-      $role = key($roles);
-      $rolename = $roles[$role]->shortname;
-      foreach ($groups as $group) {
-        if ($group->courseid == $course->id and $rolename == 'teacher') {
-          $this->content->text = '<a href="' . $CFG->wwwroot . '/local/addusers/manage.php">' . get_string('addstudents', 'block_kegblock') . '</a><br/>';
-          $this->content->text .= '<a href="' . $CFG->wwwroot . '/local/listusers/manage.php">' . get_string('liststudents', 'block_kegblock') . '</a>';
-          $this->title = get_string('managestudents', 'block_kegblock');
-        } elseif ($group->courseid == $course->id and $rolename == 'teacherkeg') {
-          $this->content->text = '<a href="' . $CFG->wwwroot . '/local/addteachers/manage.php">' . get_string('addteachers', 'block_kegblock') . '</a><br/>';
-          $this->content->text .= '<a href="' . $CFG->wwwroot . '/local/addteachers/list.php">' . get_string('listteachers', 'block_kegblock') . '</a><br/>';
-          $this->content->text .= '<a href="' . $CFG->wwwroot . '/local/addteachers/groups.php">' . get_string('teachersgroups', 'block_kegblock') . '</a>';
-          $this->title = get_string('manageteachers', 'block_kegblock');
+      $courses  = enrol_get_all_users_courses($USER->id, true, ['id', 'fullname']);
+      $groups   = groups_get_my_groups();
+
+      foreach ($courses as $course) {
+        $context = context_course::instance($course->id);
+        $roles = get_user_roles($context, $USER->id, true);
+        $role = key($roles);
+        $rolename = $roles[$role]->shortname;
+
+
+        foreach ($groups as $group) {
+          if ($group->courseid == $course->id and $rolename == 'teacher') {
+            $this->content->text = '<a href="' . $CFG->wwwroot . '/local/addusers/manage.php">' . get_string('addstudents', 'block_kegblock') . '</a><br/>';
+            $this->content->text .= '<a href="' . $CFG->wwwroot . '/local/listusers/manage.php">' . get_string('liststudents', 'block_kegblock') . '</a>';
+            $this->title = get_string('managestudents', 'block_kegblock');
+          } elseif ($group->courseid == $course->id and $rolename == 'teacherkeg') {
+            $this->content->text = '<a href="' . $CFG->wwwroot . '/local/addteachers/manage.php">' . get_string('addteachers', 'block_kegblock') . '</a><br/>';
+            $this->content->text .= '<a href="' . $CFG->wwwroot . '/local/addteachers/list.php">' . get_string('listteachers', 'block_kegblock') . '</a><br/>';
+            $this->content->text .= '<a href="' . $CFG->wwwroot . '/local/addteachers/groups.php">' . get_string('teachersgroups', 'block_kegblock') . '</a>';
+            $this->title = get_string('manageteachers', 'block_kegblock');
+          }
         }
       }
     }

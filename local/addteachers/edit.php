@@ -22,58 +22,37 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__ . '/../../config.php');
-require_once($CFG->dirroot . '/group/lib.php');
-require_once($CFG->dirroot . '/local/addusers/vendor/llagerlof/moodlerest/MoodleRest.php');
+require_once __DIR__ . '/../../config.php';
+require_once $CFG->dirroot . '/group/lib.php';
 
 global $USER, $PAGE;
 
 require_login();
 
 if (!isguestuser()) {
-  $tokenurl       = $CFG->wwwroot . '/login/token.php?username=wiktor&password=!53W7qbec&service=kegmanager';
-  $tokenresponse  = file_get_contents($tokenurl);
-  $tokenobject    = json_decode($tokenresponse);
+    $groups = groups_get_my_groups();
 
-  if (!empty($tokenobject->error)) {
-    \core\notification::add($tokenobject->error, \core\output\notification::NOTIFY_ERROR);
-  } else {
-    $baseurl      = $CFG->wwwroot . '/webservice/rest/server.php';
-    $MoodleRest   = new MoodleRest($baseurl, $tokenobject->token);
-    //$MoodleRest->setDebug();
-
-    $groups   = groups_get_my_groups();
-
-    $teacher     = (object) ["id" => optional_param('id', '', PARAM_INT), 'exists' => false];
-    $group       = (object) ["id" => optional_param('group', 0, PARAM_INT), 'access' => false];
+    $teacher = (object) ["id" => optional_param('id', '', PARAM_INT), 'exists' => false];
+    $group = (object) ["id" => optional_param('group', 0, PARAM_INT), 'access' => false];
 
     if ($group->id == 0) {
-      echo '{"message": "Error: Nie wybrano klasy!", "error": true}';
+        echo '{"message": "Error: Nie wybrano klasy!", "error": true}';
     } else {
-      foreach ($groups as $item) {
-        if ($item->id == $group->id) {
-          $group->access = true;
+        foreach ($groups as $item) {
+            if ($item->id == $group->id) {
+                $group->access = true;
+            }
         }
-      }
 
-      if ($group->access === false) {
-        echo '{"message": "Error: Nie masz uprawnień do tej klasy!", "error": true}';
-      } else {
-        if (!empty($tokenobject->error)) {
-          echo '{"message": "' . $tokenobject->error . '", "error": false}';
+        if ($group->access === false) {
+            echo '{"message": "Error: Nie masz uprawnień do tej klasy!", "error": true}';
         } else {
-          try {
-            $members[] = [
-              'userid' => (int) $teacher->id,
-              'groupid' => (int) $group->id
-            ];
-            $response = $MoodleRest->request('core_group_add_group_members', array('members' => $members));
-            echo '{"message": "Message: Dane zostały zapisane poprawnie!", "error": false}';
-          } catch (Exception $th) {
-            echo '{"message": "' . $th->getMessage() . '", "error": true}';
-          }
+            try {
+                groups_add_member((int) $group->id, (int) $teacher->id);
+                echo '{"message": "Message: Dane zostały zapisane poprawnie!", "error": false}';
+            } catch (Exception $th) {
+                echo '{"message": "' . $th->getMessage() . '", "error": true}';
+            }
         }
-      }
     }
-  }
 }

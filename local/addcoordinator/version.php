@@ -17,32 +17,14 @@
 /**
  * Readme file for local customisations
  *
- * @package    local_addteachers
- * @copyright  2021 AstoSoft (https://astosoft.pl)
+ * @package    local_addcoordinator
+ * @copyright  2022 AstoSoft (https://astosoft.pl)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @var stdClass $plugin
  */
 
-require_once __DIR__ . '/../../config.php';
-require_once $CFG->dirroot . '/group/lib.php';
+defined('MOODLE_INTERNAL') || die;
 
-global $USER, $PAGE;
-
-require_login();
-
-if (!isguestuser()) {
-    $groups = groups_get_my_groups();
-
-    $group = (object) ['id' => (int) optional_param('id', '', PARAM_ALPHANUMEXT), 'access' => false];
-
-    foreach ($groups as $item) {
-        if ($item->id == $group->id) {
-            $group->access = true;
-        }
-    }
-
-    if ($group->access === false) {
-        echo '{"message": "Error: You do not have access to this group!", "error": true}';
-    } else {
-        groups_delete_group($group->id);
-    }
-}
+$plugin->component = 'local_addcoordinator';
+$plugin->version = 2022090300;
+$plugin->requires = 2020110900;

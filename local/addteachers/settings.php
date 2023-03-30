@@ -1,5 +1,5 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
+// This file is part of Moodle - https://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,15 +15,19 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details
+ * Adds admin settings for the plugin.
  *
- * @package    block_kegblock
- * @copyright  2021 AstoSoft (https://astosoft.pl)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     local_addteachers
+ * @category    admin
+ * @copyright   2022 AstoSoft (https://astosoft.pl)
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2022061100;        // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2020110900;        // Requires this Moodle version
-$plugin->component = 'block_kegblock';      // Full name of the plugin (used for diagnostics)
+if ($hassiteconfig) {
+    $ADMIN->add('localplugins', new admin_category('local_addteachers_settings', new lang_string('pluginname', 'local_addteachers')));
+    $settingspage = new admin_settingpage('managelocaladdteachers', new lang_string('manage', 'local_addteachers'));
+
+    $ADMIN->add('localplugins', $settingspage);
+}

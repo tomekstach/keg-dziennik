@@ -32,3 +32,4 @@ $string['formwascleared'] = 'Form was cleared!';
 $string['selectgroup'] = 'Please select the class!';
 $string['errornumberofstudents'] = 'Number of students has to be greater than zero!';
 $string['userswereadded'] = 'Students were added to the system!';
+$string['manage'] = 'Adding students - managing';
