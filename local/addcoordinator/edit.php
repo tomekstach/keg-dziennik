@@ -34,8 +34,8 @@ if (!isguestuser()) {
     $userObj = $DB->get_record('user', array('id' => $userid));
     $user = null;
 
-    $userObj->firstname = (string) optional_param('firstname', 0, PARAM_TEXT);
-    $userObj->lastname = (string) optional_param('lastname', 0, PARAM_TEXT);
+    $userObj->firstname = (string) optional_param('firstname', 0, PARAM_NOTAGS);
+    $userObj->lastname = (string) optional_param('lastname', 0, PARAM_NOTAGS);
     $userObj->email = trim((string) optional_param('email', 0, PARAM_EMAIL));
     if ($userObj->username !== $userObj->email) {
         $userObj->username = $userObj->email;

@@ -118,12 +118,6 @@ if ($uform->is_cancelled()) {
                 'lastname' => clearString($fromform->lastname),
                 'email' => clearString($fromform->email),
                 'lang' => 'pl',
-                'preferences' => [
-                    [
-                        'type' => 'auth_forcepasswordchange',
-                        'value' => 1,
-                    ],
-                ],
                 'calendartype' => $CFG->calendartype,
                 'confirmed' => 1,
                 'mnethostid' => $CFG->mnet_localhost_id,

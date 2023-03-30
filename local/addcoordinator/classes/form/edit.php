@@ -22,66 +22,67 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once($CFG->libdir . '/formslib.php');
-require_once($CFG->dirroot . '/group/lib.php');
+require_once $CFG->libdir . '/formslib.php';
+require_once $CFG->dirroot . '/group/lib.php';
 
 class edit extends moodleform
 {
-  //Add elements to form
-  public function definition()
-  {
-    global $CFG, $USER;
+    //Add elements to form
+    public function definition()
+    {
+        global $CFG, $USER;
 
-    $mform = $this->_form; // Don't forget the underscore! 
+        $mform = $this->_form; // Don't forget the underscore!
 
-    $courses = get_courses();
-    // print_r($courses);
-    $choices = [];
-    $choices[0] = get_string('choosecourse', 'local_addcoordinator');
+        $courses = get_courses();
+        // print_r($courses);
+        $choices = [];
+        $choices[0] = get_string('choosecourse', 'local_addcoordinator');
 
-    foreach ($courses as $key => $course) {
-      if ($course->visible == 1 and $course->category > 0 and $course->category != 4) {
-        $choices[$key] = $course->shortname;
-      }
+        foreach ($courses as $key => $course) {
+            if ($course->visible == 1 and $course->category > 0 and $course->category != 4) {
+                $choices[$key] = $course->shortname;
+            }
+        }
+
+        $mform->addElement('select', 'course', get_string('choosecourse', 'local_addcoordinator'), $choices);
+        $mform->addRule('course', get_string('missingcourse'), 'required');
+
+        $mform->addElement('text', 'schoolname', get_string('schoolname', 'local_addcoordinator')); // Add elements to your form
+        $mform->setType('schoolname', PARAM_NOTAGS); //Set type of element
+        $mform->addRule('schoolname', get_string('missingschoolname', 'local_addcoordinator'), 'required');
+        $mform->setDefault('schoolname', ''); //Default value
+
+        $mform->addElement('text', 'classname', get_string('classname', 'local_addcoordinator')); // Add elements to your form
+        $mform->setType('classname', PARAM_NOTAGS); //Set type of element
+        $mform->addRule('classname', get_string('missingclassname', 'local_addcoordinator'), 'required');
+        $mform->setDefault('classname', ''); //Default value
+
+        $mform->addElement('text', 'email', get_string('email')); // Add elements to your form
+        $mform->setType('email', PARAM_NOTAGS); //Set type of element
+        $mform->addRule('email', get_string('missingemail'), 'required', null, 'server');
+        $mform->setDefault('email', ''); //Default value
+
+        $mform->addElement('text', 'firstname', get_string('firstname')); // Add elements to your form
+        $mform->setType('firstname', PARAM_NOTAGS); //Set type of element
+        $mform->addRule('firstname', get_string('missingfirstname'), 'required');
+        $mform->setDefault('firstname', ''); //Default value
+
+        $mform->addElement('text', 'lastname', get_string('lastname')); // Add elements to your form
+        $mform->setType('lastname', PARAM_NOTAGS); //Set type of element
+        $mform->addRule('lastname', get_string('missinglastname'), 'required');
+        $mform->setDefault('lastname', ''); //Default value
+
+        $mform->addElement('password', 'password', get_string('password')); // Add elements to your form
+        $mform->setType('password', PARAM_NOTAGS); //Set type of element
+        $mform->addRule('password', get_string('missingpassword'), 'required');
+        $mform->setDefault('password', ''); //Default value
+
+        $this->add_action_buttons();
     }
-
-    $mform->addElement('select', 'course', get_string('choosecourse', 'local_addcoordinator'), $choices);
-    $mform->addRule('course', get_string('missingcourse'), 'required');
-
-    $mform->addElement('text', 'schoolname',  get_string('schoolname', 'local_addcoordinator')); // Add elements to your form
-    $mform->setType('schoolname', PARAM_NOTAGS);                   //Set type of element
-    $mform->addRule('schoolname', get_string('missingschoolname', 'local_addcoordinator'), 'required');
-    $mform->setDefault('schoolname', '');        //Default value
-
-    $mform->addElement('text', 'classname',  get_string('classname', 'local_addcoordinator')); // Add elements to your form
-    $mform->setType('classname', PARAM_NOTAGS);                   //Set type of element
-    $mform->addRule('classname', get_string('missingclassname', 'local_addcoordinator'), 'required');
-    $mform->setDefault('classname', '');        //Default value
-
-    $mform->addElement('text', 'email',  get_string('email')); // Add elements to your form
-    $mform->setType('email', PARAM_NOTAGS);                   //Set type of element
-    $mform->addRule('email', get_string('missingemail'), 'required', null, 'server');
-    $mform->setDefault('email', '');        //Default value
-
-    $mform->addElement('text', 'firstname',  get_string('firstname')); // Add elements to your form
-    $mform->setType('firstname', PARAM_NOTAGS);                   //Set type of element
-    $mform->addRule('firstname', get_string('missingfirstname'), 'required');
-    $mform->setDefault('firstname', '');        //Default value
-
-    $mform->addElement('text', 'lastname',  get_string('lastname')); // Add elements to your form
-    $mform->setType('lastname', PARAM_NOTAGS);                   //Set type of element
-    $mform->addRule('lastname', get_string('missinglastname'), 'required');
-    $mform->setDefault('lastname', '');        //Default value
-
-    $mform->addElement('password', 'password', get_string('password')); // Add elements to your form
-    $mform->addRule('password', get_string('missingpassword'), 'required');
-    $mform->setDefault('password', '');        //Default value
-
-    $this->add_action_buttons();
-  }
-  //Custom validation should be added here
-  function validation($data, $files)
-  {
-    return array();
-  }
+    //Custom validation should be added here
+    public function validation($data, $files)
+    {
+        return array();
+    }
 }
