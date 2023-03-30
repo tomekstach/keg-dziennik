@@ -24,18 +24,12 @@
 
 require_once __DIR__ . '/../../config.php';
 require_once $CFG->dirroot . '/group/lib.php';
-require_once $CFG->dirroot . '/local/addusers/vendor/llagerlof/moodlerest/MoodleRest.php';
 
 global $USER, $PAGE;
 
 require_login();
 
 if (!isguestuser()) {
-    $token = get_config('local_addcoordinator', 'apitoken');
-    $baseurl = $CFG->wwwroot . '/webservice/rest/server.php';
-    $MoodleRest = new MoodleRest($baseurl, $token);
-    //$MoodleRest->setDebug();
-
     $courses = enrol_get_all_users_courses($USER->id, true, ['id', 'fullname']);
     $groups = groups_get_my_groups();
 
@@ -74,18 +68,8 @@ if (!isguestuser()) {
             if (!isset($students[$student->id])) {
                 echo '{"message": "Error: This student is not assigned to this group!", "error": true}';
             } else {
-                $enrolments[] = [
-                    'roleid' => '5',
-                    'userid' => (int) $student->id,
-                    'courseid' => $course->id,
-                ];
-                $members[] = [
-                    'userid' => (int) $student->id,
-                    'groupid' => $group->id,
-                ];
-                // Run API methods
-                $response = $MoodleRest->request('enrol_manual_unenrol_users', array('enrolments' => $enrolments));
-                $response = $MoodleRest->request('core_group_delete_group_members', array('members' => $members));
+                // TODO: unenrolment
+                groups_remove_member($group->id, (int) $student->id);
             }
         }
     }

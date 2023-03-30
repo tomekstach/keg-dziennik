@@ -25,6 +25,7 @@
 require_once __DIR__ . '/../../config.php';
 require_once $CFG->dirroot . '/local/addcoordinator/classes/form/edit.php';
 require_once $CFG->dirroot . '/group/lib.php';
+require_once $CFG->dirroot . '/user/profile/lib.php';
 require_once $CFG->dirroot . '/user/lib.php';
 
 global $USER, $DB;
@@ -95,6 +96,68 @@ if ($uform->is_cancelled()) {
                 throw new Exception('Podana szkoła już istnieje w wybranym kursie!');
             }
 
+            if (strlen($fromform->firstname) < 2) {
+                throw new Exception('Zła wartość w polu imię!');
+            }
+
+            if (strlen($fromform->lastname) < 2) {
+                throw new Exception('Zła wartość w polu nazwisko!');
+            }
+
+            if (!validate_email($fromform->email) or is_object($user)) {
+                throw new Exception('Zła wartość w polu email!');
+            }
+
+            // Create user's data
+            $plainPassword = clearString($fromform->password);
+            $user = (object) [
+                // username = email
+                'username' => clearString($fromform->email),
+                'password' => hash_internal_user_password($plainPassword),
+                'firstname' => clearString($fromform->firstname),
+                'lastname' => clearString($fromform->lastname),
+                'email' => clearString($fromform->email),
+                'lang' => 'pl',
+                'preferences' => [
+                    [
+                        'type' => 'auth_forcepasswordchange',
+                        'value' => 1,
+                    ],
+                ],
+                'calendartype' => $CFG->calendartype,
+                'confirmed' => 1,
+                'mnethostid' => $CFG->mnet_localhost_id,
+            ];
+
+            $user->id = (int) user_create_user($user, false, false);
+
+            if ($user->id === 0) {
+                throw new Exception('Błąd przy dodawaniu użytkownika - skontaktuj się z administratorem!');
+            }
+
+            user_add_password_history($user->id, $plainPassword);
+
+            profile_save_data($user);
+
+            \core\event\user_created::create_from_userid($user->id)->trigger();
+            set_user_preference('auth_forcepasswordchange', 1, $user->id);
+            // send_confirmation_email($user);
+
+            $contextNewUser = $DB->get_record('context', ['contextlevel' => 30, 'instanceid' => $user->id]);
+
+            $instanceData = (object) [
+                'blockname' => 'kegblock',
+                'parentcontextid' => $contextNewUser->id,
+                'showinsubcontexts' => 0,
+                'pagetypepattern' => 'my-index',
+                'defaultregion' => 'side-pre',
+                'defaultweight' => 1,
+                'configdata' => ' ',
+                'timecreated' => time(),
+                'timemodified' => time(),
+            ];
+            $DB->insert_record('block_instances', $instanceData);
+
             // Add group in the selected course for the school (main group - groups_create_grouping($data, $editoroptions=null))
             $schoolData = (object) [
                 'name' => clearString($fromform->schoolname),
@@ -119,48 +182,13 @@ if ($uform->is_cancelled()) {
             ];
             $schoolLessonDiaryID = groups_create_group($schoolLessonDiaryData);
 
-            if (strlen($fromform->firstname) < 2) {
-                throw new Exception('Zła wartość w polu imię!');
-            }
+            enrol_try_internal_enrol($fromform->course, $user->id, 9);
 
-            if (strlen($fromform->lastname) < 2) {
-                throw new Exception('Zła wartość w polu nazwisko!');
-            }
+            enrol_try_internal_enrol(10, $user->id, 9);
 
-            if (!validate_email($fromform->email) or is_object($user)) {
-                throw new Exception('Zła wartość w polu email!');
-            }
+            groups_add_member($classID, $user->id);
 
-            // Create user's data
-            $user = [
-                // username = email
-                'username' => clearString($fromform->email),
-                'password' => clearString($fromform->password),
-                'firstname' => clearString($fromform->firstname),
-                'lastname' => clearString($fromform->lastname),
-                'email' => clearString($fromform->email),
-                'lang' => 'pl',
-                'preferences' => [
-                    0 => [
-                        'type' => 'auth_forcepasswordchange',
-                        'value' => 1,
-                    ],
-                ],
-            ];
-
-            $userID = (int) user_create_user($user);
-
-            if ($userID === 0) {
-                throw new Exception('Błąd przy dodawaniu użytkownika - skontaktuj się z administratorem!');
-            }
-
-            enrol_try_internal_enrol($fromform->course, $userID, 9);
-
-            enrol_try_internal_enrol(10, $userID, 9);
-
-            groups_add_member($classID, $userID);
-
-            groups_add_member($schoolLessonDiaryID, $userID);
+            groups_add_member($schoolLessonDiaryID, $user->id);
 
             \core\notification::add(get_string('coordinatorwasadded', 'local_addcoordinator'), \core\output\notification::NOTIFY_SUCCESS);
             echo $OUTPUT->render_from_template('local_addcoordinator/manage', $templatecontext);

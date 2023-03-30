@@ -24,18 +24,12 @@
 
 require_once __DIR__ . '/../../config.php';
 require_once $CFG->dirroot . '/group/lib.php';
-require_once $CFG->dirroot . '/local/addusers/vendor/llagerlof/moodlerest/MoodleRest.php';
 
 global $USER, $PAGE;
 
 require_login();
 
 if (!isguestuser()) {
-    $token = get_config('local_addteachers', 'apitoken');
-    $baseurl = $CFG->wwwroot . '/webservice/rest/server.php';
-    $MoodleRest = new MoodleRest($baseurl, $token);
-    //$MoodleRest->setDebug();
-
     $groups = groups_get_my_groups();
 
     $teacher = (object) ["id" => optional_param('id', '', PARAM_INT), 'exists' => false];
@@ -53,19 +47,11 @@ if (!isguestuser()) {
         if ($group->access === false) {
             echo '{"message": "Error: Nie masz uprawnień do tej klasy!", "error": true}';
         } else {
-            if (!empty($tokenobject->error)) {
-                echo '{"message": "' . $tokenobject->error . '", "error": false}';
-            } else {
-                try {
-                    $members[] = [
-                        'userid' => (int) $teacher->id,
-                        'groupid' => (int) $group->id,
-                    ];
-                    $response = $MoodleRest->request('core_group_add_group_members', array('members' => $members));
-                    echo '{"message": "Message: Dane zostały zapisane poprawnie!", "error": false}';
-                } catch (Exception $th) {
-                    echo '{"message": "' . $th->getMessage() . '", "error": true}';
-                }
+            try {
+                groups_add_member((int) $group->id, (int) $teacher->id);
+                echo '{"message": "Message: Dane zostały zapisane poprawnie!", "error": false}';
+            } catch (Exception $th) {
+                echo '{"message": "' . $th->getMessage() . '", "error": true}';
             }
         }
     }

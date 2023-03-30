@@ -26,16 +26,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
-  $ADMIN->add('localplugins', new admin_category('local_addusers_settings', new lang_string('pluginname', 'local_addusers')));
-  $settingspage = new admin_settingpage('managelocaladdusers', new lang_string('manage', 'local_addusers'));
+    $ADMIN->add('localplugins', new admin_category('local_addusers_settings', new lang_string('pluginname', 'local_addusers')));
+    $settingspage = new admin_settingpage('managelocaladdusers', new lang_string('manage', 'local_addusers'));
 
-  $settingspage->add(new admin_setting_configtext(
-    'local_addusers/apitoken',
-    'Rest API: Token',
-    'This is the token used to access the Rest API',
-    '',
-    PARAM_TEXT
-  ));
-
-  $ADMIN->add('localplugins', $settingspage);
+    $ADMIN->add('localplugins', $settingspage);
 }

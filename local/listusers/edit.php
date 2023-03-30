@@ -24,18 +24,12 @@
 
 require_once __DIR__ . '/../../config.php';
 require_once $CFG->dirroot . '/group/lib.php';
-require_once $CFG->dirroot . '/local/addusers/vendor/llagerlof/moodlerest/MoodleRest.php';
 
 global $USER, $PAGE;
 
 require_login();
 
 if (!isguestuser()) {
-    $token = get_config('local_addcoordinator', 'apitoken');
-    $baseurl = $CFG->wwwroot . '/webservice/rest/server.php';
-    $MoodleRest = new MoodleRest($baseurl, $token);
-    //$MoodleRest->setDebug();
-
     $courses = enrol_get_all_users_courses($USER->id, true, ['id', 'fullname']);
     $groups = groups_get_my_groups();
 

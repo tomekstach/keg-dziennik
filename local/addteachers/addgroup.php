@@ -24,7 +24,6 @@
 
 require_once __DIR__ . '/../../config.php';
 require_once $CFG->dirroot . '/group/lib.php';
-require_once $CFG->dirroot . '/local/addusers/vendor/llagerlof/moodlerest/MoodleRest.php';
 
 global $USER, $PAGE;
 

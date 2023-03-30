@@ -22,10 +22,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__ . '/../../config.php');
-require_once($CFG->dirroot . '/local/addteachers/classes/form/edit.php');
-require_once($CFG->dirroot . '/group/lib.php');
-require_once($CFG->dirroot . '/local/addteachers/vendor/llagerlof/moodlerest/MoodleRest.php');
+require_once __DIR__ . '/../../config.php';
+require_once $CFG->dirroot . '/local/addteachers/classes/form/edit.php';
+require_once $CFG->dirroot . '/group/lib.php';
+require_once $CFG->dirroot . '/user/profile/lib.php';
+require_once $CFG->dirroot . '/user/lib.php';
 
 global $USER, $DB;
 
@@ -35,24 +36,24 @@ $PAGE->set_url(new moodle_url('/local/addteachers/manage.php'));
 $PAGE->set_title(get_string('localteacherheader', 'local_addteachers'));
 
 $templatecontext = (object) [
-  'texttodisplay' => get_string('localteachertext', 'local_addteachers'),
-  'headertext' => get_string('localteacherheader', 'local_addteachers')
+    'texttodisplay' => get_string('localteachertext', 'local_addteachers'),
+    'headertext' => get_string('localteacherheader', 'local_addteachers'),
 ];
 
-if (isguestuser()) {  // Force them to see system default, no editing allowed
-  // If guests are not allowed my moodle, send them to front page.
-  if (empty($CFG->allowguestmymoodle)) {
-    redirect(new moodle_url('/', array('redirect' => 0)));
-  }
+if (isguestuser()) { // Force them to see system default, no editing allowed
+    // If guests are not allowed my moodle, send them to front page.
+    if (empty($CFG->allowguestmymoodle)) {
+        redirect(new moodle_url('/', array('redirect' => 0)));
+    }
 
-  $userid = null;
-  $USER->editing = $edit = 0;  // Just in case
-  $context = context_system::instance();
-  $PAGE->set_blocks_editing_capability('moodle/my:configsyspages');  // unlikely :)
-} else {        // We are trying to view or edit our own My Moodle page
-  $userid = $USER->id;  // Owner of the page
-  $context = context_user::instance($USER->id);
-  $PAGE->set_blocks_editing_capability('moodle/my:manageblocks');
+    $userid = null;
+    $USER->editing = $edit = 0; // Just in case
+    $context = context_system::instance();
+    $PAGE->set_blocks_editing_capability('moodle/my:configsyspages'); // unlikely :)
+} else { // We are trying to view or edit our own My Moodle page
+    $userid = $USER->id; // Owner of the page
+    $context = context_user::instance($USER->id);
+    $PAGE->set_blocks_editing_capability('moodle/my:manageblocks');
 }
 
 $PAGE->set_context($context);
@@ -61,179 +62,150 @@ $PAGE->set_pagetype('my-index');
 
 echo $OUTPUT->header();
 
+if (!function_exists('clearString')) {
+    function clearString($string)
+    {
+        return addslashes(stripslashes(strip_tags(trim($string))));
+    }
+}
+
 $uform = new edit();
 
 $templatecontext->anyTeachers = false;
-$templatecontext->teachers    = [];
+$templatecontext->teachers = [];
 
 //Form processing and displaying is done here
 if ($uform->is_cancelled()) {
-  //Handle form cancel operation, if cancel button is present on form
-  \core\notification::add(get_string('formwascleared', 'local_addteachers'), \core\output\notification::NOTIFY_WARNING);
-  echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
-  $uform->display();
-} else if ($fromform = $uform->get_data()) {
-  //In this case you process validated data. $mform->get_data() returns data posted in form.
-  //print_r($fromform);
-  if ((int) $fromform->group == 0) {
-    \core\notification::add(get_string('selectgroup', 'local_addteachers'), \core\output\notification::NOTIFY_ERROR);
+    //Handle form cancel operation, if cancel button is present on form
+    \core\notification::add(get_string('formwascleared', 'local_addteachers'), \core\output\notification::NOTIFY_WARNING);
     echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
     $uform->display();
-  } else {
-    $groups = groups_get_my_groups();
-    //print_r($groups);
-    $courseID   = 0;
-    $groupID    = explode('-', $fromform->group)[0];
-    $groupingID = explode('-', $fromform->group)[1];
-
-    foreach ($groups as $group) {
-      if ($group->id == $groupID) {
-        $courseID = $group->courseid;
-      }
-    }
-
-    // Find schools from 'dziennik'
-    foreach ($groups as $group) {
-      if ($group->courseid == '10') {
-        $context = context_course::instance($group->courseid);
-        $roles = get_user_roles($context, $USER->id, true);
-        $role = key($roles);
-        $rolename = $roles[$role]->shortname;
-        if ($rolename == 'teacherkeg') {
-          $groupings[] = $group->name;
-        }
-      }
-    }
-
-    $token = get_config('local_addteachers', 'apitoken');
-    $baseurl = $CFG->wwwroot . '/webservice/rest/server.php';
-
-    // Create user's data
-    $users = [];
-    $users[] = [
-      // username = email
-      'username' => $fromform->email,
-      'password' =>  $fromform->password,
-      'firstname' =>  $fromform->firstname,
-      'lastname' => $fromform->lastname,
-      'email' => $fromform->email,
-      'lang' => 'pl',
-      'preferences' => [
-        0 => [
-          'type' => 'auth_forcepasswordchange',
-          'value' => 1
-        ]
-      ]
-    ];
-
-    $MoodleRest = new MoodleRest($baseurl, $token);
-    //$MoodleRest->setDebug();
-    try {
-      $newusers = $MoodleRest->request('core_user_create_users', array('users' => $users));
-
-      if (array_key_exists('exception', $newusers)) {
-        throw new Exception($newusers['message']);
-      }
-
-      $enrolmentsG  = [];
-      $enrolmentsD  = [];
-      $membersG     = [];
-      $membersD     = [];
-
-      foreach ($newusers as $newuser) {
-        if ((int) $newuser['id'] > 0) {
-          $enrolmentsG[] = [
-            'roleid' => '4',
-            'userid' => (int) $newuser['id'],
-            'courseid' => $courseID
-          ];
-
-          $enrolmentsD[] = [
-            'roleid' => '5',
-            'userid' => (int) $newuser['id'],
-            'courseid' => '10'
-          ];
-
-          $membersG[] = [
-            'userid' => (int) $newuser['id'],
-            'groupid' => $groupID
-          ];
-
-          $membersD[] = [
-            'userid' => (int) $newuser['id'],
-            'groupid' => $groupingID
-          ];
-        }
-      }
-
-      if (count($enrolmentsG) > 0) {
-        $contextNewUser = $DB->get_record('context', ['contextlevel' => 30, 'instanceid' => $newuser['id']]);
-
-        $instanceData = (object) [
-          'blockname' => 'kegblock',
-          'parentcontextid' => $contextNewUser->id,
-          'showinsubcontexts' => 0,
-          'pagetypepattern' => 'my-index',
-          'defaultregion' => 'side-pre',
-          'defaultweight' => 1,
-          'configdata' => ' ',
-          'timecreated' => time(),
-          'timemodified' => time()
-        ];
-        $DB->insert_record('block_instances', $instanceData);
-
-        $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolmentsG));
-        $response = $MoodleRest->request('enrol_manual_enrol_users', array('enrolments' => $enrolmentsD));
-        $response = $MoodleRest->request('core_group_add_group_members', array('members' => $membersG));
-        $response = $MoodleRest->request('core_group_add_group_members', array('members' => $membersD));
-
-        $i = 1;
-        foreach ($users as &$user) {
-          foreach ($newusers as $newuser) {
-            if ($user['username'] == $newuser['username']) {
-              $templatecontext->teachers[] = (object) [
-                'lp' => $i,
-                'name' => $user['firstname'] . ' ' . $user['lastname'],
-                'email' => $user['email']
-              ];
-              $i++;
-            }
-          }
-        }
-        if ($i > 1) {
-          $templatecontext->anyTeachers = true;
-        } else {
-          $templatecontext->anyTeachers = false;
-        }
-        \core\notification::add(get_string('teacherwasadded', 'local_addteachers'), \core\output\notification::NOTIFY_SUCCESS);
-        echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
-      } else {
-        \core\notification::add(get_string('errorteachernotadded', 'local_addteachers'), \core\output\notification::NOTIFY_ERROR);
+} else if ($fromform = $uform->get_data()) {
+    //In this case you process validated data. $mform->get_data() returns data posted in form.
+    //print_r($fromform);
+    if ((int) $fromform->group == 0) {
+        \core\notification::add(get_string('selectgroup', 'local_addteachers'), \core\output\notification::NOTIFY_ERROR);
         echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
         $uform->display();
-      }
-    } catch (Exception $th) {
-      \core\notification::add($th->getMessage(), \core\output\notification::NOTIFY_ERROR);
-      echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
-      $uform->display();
+    } else {
+        $groups = groups_get_my_groups();
+        //print_r($groups);
+        $courseID = 0;
+        $groupID = explode('-', $fromform->group)[0];
+        $groupingID = explode('-', $fromform->group)[1];
+
+        foreach ($groups as $group) {
+            if ($group->id == $groupID) {
+                $courseID = $group->courseid;
+            }
+        }
+
+        // Find schools from 'dziennik'
+        foreach ($groups as $group) {
+            if ($group->courseid == '10') {
+                $context = context_course::instance($group->courseid);
+                $roles = get_user_roles($context, $USER->id, true);
+                $role = key($roles);
+                $rolename = $roles[$role]->shortname;
+                if ($rolename == 'teacherkeg') {
+                    $groupings[] = $group->name;
+                }
+            }
+        }
+
+        try {
+
+            if (strlen($fromform->firstname) < 2) {
+                throw new Exception('Zła wartość w polu imię!');
+            }
+
+            if (strlen($fromform->lastname) < 2) {
+                throw new Exception('Zła wartość w polu nazwisko!');
+            }
+
+            if (!validate_email($fromform->email) or is_object($user)) {
+                throw new Exception('Zła wartość w polu email!');
+            }
+
+            $plainPassword = clearString($fromform->password);
+            $user = (object) [
+                // username = email
+                'username' => clearString($fromform->email),
+                'password' => hash_internal_user_password($plainPassword),
+                'firstname' => clearString($fromform->firstname),
+                'lastname' => clearString($fromform->lastname),
+                'email' => clearString($fromform->email),
+                'lang' => 'pl',
+                'preferences' => [
+                    [
+                        'type' => 'auth_forcepasswordchange',
+                        'value' => 1,
+                    ],
+                ],
+                'calendartype' => $CFG->calendartype,
+                'confirmed' => 1,
+                'mnethostid' => $CFG->mnet_localhost_id,
+            ];
+
+            $user->id = (int) user_create_user($user);
+
+            if ($user->id === 0) {
+                throw new Exception('Błąd przy dodawaniu użytkownika - skontaktuj się z administratorem!');
+            }
+
+            user_add_password_history($user->id, $plainPassword);
+
+            profile_save_data($user);
+
+            \core\event\user_created::create_from_userid($user->id)->trigger();
+            set_user_preference('auth_forcepasswordchange', 1, $user->id);
+            // send_confirmation_email($user);
+
+            $contextNewUser = $DB->get_record('context', ['contextlevel' => 30, 'instanceid' => $user->id]);
+
+            $instanceData = (object) [
+                'blockname' => 'kegblock',
+                'parentcontextid' => $contextNewUser->id,
+                'showinsubcontexts' => 0,
+                'pagetypepattern' => 'my-index',
+                'defaultregion' => 'side-pre',
+                'defaultweight' => 1,
+                'configdata' => ' ',
+                'timecreated' => time(),
+                'timemodified' => time(),
+            ];
+            $DB->insert_record('block_instances', $instanceData);
+
+            enrol_try_internal_enrol($courseID, $user->id, 4);
+            enrol_try_internal_enrol(10, $user->id, 5);
+            groups_add_member($groupID, $user->id);
+            groups_add_member($groupingID, $user->id);
+
+            $templatecontext->teachers[] = (object) [
+                'lp' => 1,
+                'name' => clearString($fromform->firstname) . ' ' . clearString($fromform->lastname),
+                'email' => clearString($fromform->email),
+            ];
+
+            $templatecontext->anyTeachers = true;
+            \core\notification::add(get_string('teacherwasadded', 'local_addteachers'), \core\output\notification::NOTIFY_SUCCESS);
+            echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
+        } catch (Exception $th) {
+            \core\notification::add($th->getMessage(), \core\output\notification::NOTIFY_ERROR);
+            echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
+            $uform->display();
+        }
     }
-  }
 } else {
-  // this branch is executed if the form is submitted but the data doesn't validate and the form should be redisplayed
-  // or on the first display of the form.
+    // this branch is executed if the form is submitted but the data doesn't validate and the form should be redisplayed
+    // or on the first display of the form.
 
-  // $tokenurl = $CFG->wwwroot . '/login/token.php?username=&password=&service=kegmanager';
-  // $tokenresponse = file_get_contents($tokenurl);
-  // $tokenobject = json_decode($tokenresponse);
+    echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
 
-  // print_r($tokenobject);
-
-  echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
-
-  //Set default data (if any)
-  //$uform->set_data($toform);
-  //displays the form
-  $uform->display();
+    //Set default data (if any)
+    //$uform->set_data($toform);
+    //displays the form
+    $uform->display();
 }
 
 echo $OUTPUT->footer();

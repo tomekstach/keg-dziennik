@@ -26,16 +26,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
-  $ADMIN->add('localplugins', new admin_category('local_addteachers_settings', new lang_string('pluginname', 'local_addteachers')));
-  $settingspage = new admin_settingpage('managelocaladdteachers', new lang_string('manage', 'local_addteachers'));
+    $ADMIN->add('localplugins', new admin_category('local_addteachers_settings', new lang_string('pluginname', 'local_addteachers')));
+    $settingspage = new admin_settingpage('managelocaladdteachers', new lang_string('manage', 'local_addteachers'));
 
-  $settingspage->add(new admin_setting_configtext(
-    'local_addteachers/apitoken',
-    'Rest API: Token',
-    'This is the token used to access the Rest API',
-    '',
-    PARAM_TEXT
-  ));
-
-  $ADMIN->add('localplugins', $settingspage);
+    $ADMIN->add('localplugins', $settingspage);
 }
