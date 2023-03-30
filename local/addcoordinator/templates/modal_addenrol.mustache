@@ -1,0 +1,69 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_addcoordinator/modal_addenrol
+
+
+    Example context (json):
+    {
+
+    }
+}}
+
+{{< core/modal }}
+    {{$title}}{{#str}} Edit {{/str}}{{/title}}
+    {{$body}}
+    <form>
+        <div class="container">
+            <span class="notifications" id="user-notifications" style="display: none;">
+              <div class="alert alert-danger alert-block fade in " role="alert" data-aria-autofocus="true">
+                Error message
+              </div>
+            </span>
+            <div class="form-group row">
+              <div class="col-md-4">
+                <span class="float-sm-right text-nowrap">
+                  <abbr class="initialism text-danger" title="Wymagane"><i class="icon fa fa-exclamation-circle text-danger fa-fw " title="Wymagane" aria-label="Wymagane"></i></abbr>
+                </span>
+                <label id="id_course-label" for="id_course" class="col-form-label">{{#str}} coursename {{/str}}</label>
+              </div>
+              <div class="col-md-8">
+                  <select type="text" class="form-control" name="course" id="id_course"><option>Wybierz kurs</option></select>
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-md-4">
+                <span class="float-sm-right text-nowrap">
+                  <abbr class="initialism text-danger" title="Wymagane"><i class="icon fa fa-exclamation-circle text-danger fa-fw " title="Wymagane" aria-label="Wymagane"></i></abbr>
+                </span>
+                <label id="id_group-label" for="id_group" class="col-form-label">{{#str}} classname {{/str}}</label>
+              </div>
+              <div class="col-md-8">
+                  <input type="text" class="form-control" name="group" id="id_group">
+              </div>
+            </div>
+            <div class="fdescription required">W tym formularzu są pola wymagane oznaczone <i class="icon fa fa-exclamation-circle text-danger fa-fw " title="Pola wymagane" aria-label="Pola wymagane"></i></div>
+        </div>
+    {{/body}}
+    {{$footer}}
+        <input type="hidden" id="inputID" name="userid" value="">
+        <input type="hidden" id="id_school" name="school" value="">
+        <button type="button" class="btn btn-primary" data-action="save">{{#str}} save {{/str}}</button>
+        <button type="button" class="btn btn-secondary" data-action="cancel">{{#str}} cancel {{/str}}</button>
+    {{/footer}}
+    </form>
+{{/ core/modal }}

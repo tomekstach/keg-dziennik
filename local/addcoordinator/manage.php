@@ -17,13 +17,13 @@
 /**
  * Readme file for local customisations
  *
- * @package    local_addteachers
- * @copyright  2021 AstoSoft (https://astosoft.pl)
+ * @package    local_addcoordinator
+ * @copyright  2022 AstoSoft (https://astosoft.pl)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once __DIR__ . '/../../config.php';
-require_once $CFG->dirroot . '/local/addteachers/classes/form/edit.php';
+require_once $CFG->dirroot . '/local/addcoordinator/classes/form/edit.php';
 require_once $CFG->dirroot . '/group/lib.php';
 require_once $CFG->dirroot . '/user/profile/lib.php';
 require_once $CFG->dirroot . '/user/lib.php';
@@ -32,12 +32,12 @@ global $USER, $DB;
 
 require_login();
 
-$PAGE->set_url(new moodle_url('/local/addteachers/manage.php'));
-$PAGE->set_title(get_string('localteacherheader', 'local_addteachers'));
+$PAGE->set_url(new moodle_url('/local/addcoordinator/manage.php'));
+$PAGE->set_title(get_string('localcoordinatorheader', 'local_addcoordinator'));
 
 $templatecontext = (object) [
-    'texttodisplay' => get_string('localteachertext', 'local_addteachers'),
-    'headertext' => get_string('localteacherheader', 'local_addteachers'),
+    'texttodisplay' => get_string('localcoordinatortext', 'local_addcoordinator'),
+    'headertext' => get_string('localcoordinatorheader', 'local_addcoordinator'),
 ];
 
 if (isguestuser()) { // Force them to see system default, no editing allowed
@@ -77,43 +77,24 @@ $templatecontext->teachers = [];
 //Form processing and displaying is done here
 if ($uform->is_cancelled()) {
     //Handle form cancel operation, if cancel button is present on form
-    \core\notification::add(get_string('formwascleared', 'local_addteachers'), \core\output\notification::NOTIFY_WARNING);
-    echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
+    \core\notification::add(get_string('formwascleared', 'local_addcoordinator'), \core\output\notification::NOTIFY_WARNING);
+    echo $OUTPUT->render_from_template('local_addcoordinator/manage', $templatecontext);
     $uform->display();
 } else if ($fromform = $uform->get_data()) {
     //In this case you process validated data. $mform->get_data() returns data posted in form.
     //print_r($fromform);
-    if ((int) $fromform->group == 0) {
-        \core\notification::add(get_string('selectgroup', 'local_addteachers'), \core\output\notification::NOTIFY_ERROR);
-        echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
+    if ((int) $fromform->course == 0) {
+        \core\notification::add(get_string('missingcourse', 'local_addcoordinator'), \core\output\notification::NOTIFY_ERROR);
+        echo $OUTPUT->render_from_template('local_addcoordinator/manage', $templatecontext);
         $uform->display();
     } else {
-        $groups = groups_get_my_groups();
-        //print_r($groups);
-        $courseID = 0;
-        $groupID = explode('-', $fromform->group)[0];
-        $groupingID = explode('-', $fromform->group)[1];
-
-        foreach ($groups as $group) {
-            if ($group->id == $groupID) {
-                $courseID = $group->courseid;
-            }
-        }
-
-        // Find schools from 'dziennik'
-        foreach ($groups as $group) {
-            if ($group->courseid == '10') {
-                $context = context_course::instance($group->courseid);
-                $roles = get_user_roles($context, $USER->id, true);
-                $role = key($roles);
-                $rolename = $roles[$role]->shortname;
-                if ($rolename == 'teacherkeg') {
-                    $groupings[] = $group->name;
-                }
-            }
-        }
-
         try {
+            $groups = groups_get_my_groups();
+            //print_r($groups);
+
+            if (groups_get_grouping_by_name($fromform->course, $fromform->schoolname) !== false) {
+                throw new Exception('Podana szkoła już istnieje w wybranym kursie!');
+            }
 
             if (strlen($fromform->firstname) < 2) {
                 throw new Exception('Zła wartość w polu imię!');
@@ -127,6 +108,7 @@ if ($uform->is_cancelled()) {
                 throw new Exception('Zła wartość w polu email!');
             }
 
+            // Create user's data
             $plainPassword = clearString($fromform->password);
             $user = (object) [
                 // username = email
@@ -147,7 +129,7 @@ if ($uform->is_cancelled()) {
                 'mnethostid' => $CFG->mnet_localhost_id,
             ];
 
-            $user->id = (int) user_create_user($user);
+            $user->id = (int) user_create_user($user, false, false);
 
             if ($user->id === 0) {
                 throw new Exception('Błąd przy dodawaniu użytkownika - skontaktuj się z administratorem!');
@@ -176,35 +158,47 @@ if ($uform->is_cancelled()) {
             ];
             $DB->insert_record('block_instances', $instanceData);
 
-            enrol_try_internal_enrol($courseID, $user->id, 4);
-            enrol_try_internal_enrol(10, $user->id, 5);
-            groups_add_member($groupID, $user->id);
-            groups_add_member($groupingID, $user->id);
-
-            $templatecontext->teachers[] = (object) [
-                'lp' => 1,
-                'name' => clearString($fromform->firstname) . ' ' . clearString($fromform->lastname),
-                'email' => clearString($fromform->email),
+            // Add group in the selected course for the school (main group - groups_create_grouping($data, $editoroptions=null))
+            $schoolData = (object) [
+                'name' => clearString($fromform->schoolname),
+                'courseid' => (int) $fromform->course,
             ];
+            $schoolID = groups_create_grouping($schoolData);
 
-            $templatecontext->anyTeachers = true;
-            \core\notification::add(get_string('teacherwasadded', 'local_addteachers'), \core\output\notification::NOTIFY_SUCCESS);
-            echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
+            // Add group in the selected course for the class (standard group - groups_create_group($data, $editform=false, $editoroptions=null))
+            $classData = (object) [
+                'name' => clearString($fromform->classname),
+                'courseid' => (int) $fromform->course,
+            ];
+            $classID = groups_create_group($classData);
+
+            // Assigne class group to the school one - groups_assign_grouping($groupingid, $groupid)
+            groups_assign_grouping($schoolID, $classID);
+
+            // Add group in the 'Dziennik lekcji' for the school (standard group - groups_create_group($data, $editform=false, $editoroptions=null))
+            $schoolLessonDiaryData = (object) [
+                'name' => clearString($fromform->schoolname),
+                'courseid' => '10',
+            ];
+            $schoolLessonDiaryID = groups_create_group($schoolLessonDiaryData);
+
+            enrol_try_internal_enrol($fromform->course, $user->id, 9);
+
+            enrol_try_internal_enrol(10, $user->id, 9);
+
+            groups_add_member($classID, $user->id);
+
+            groups_add_member($schoolLessonDiaryID, $user->id);
+
+            \core\notification::add(get_string('coordinatorwasadded', 'local_addcoordinator'), \core\output\notification::NOTIFY_SUCCESS);
+            echo $OUTPUT->render_from_template('local_addcoordinator/manage', $templatecontext);
         } catch (Exception $th) {
             \core\notification::add($th->getMessage(), \core\output\notification::NOTIFY_ERROR);
-            echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
+            echo $OUTPUT->render_from_template('local_addcoordinator/manage', $templatecontext);
             $uform->display();
         }
     }
 } else {
-    // this branch is executed if the form is submitted but the data doesn't validate and the form should be redisplayed
-    // or on the first display of the form.
-
-    echo $OUTPUT->render_from_template('local_addteachers/manage', $templatecontext);
-
-    //Set default data (if any)
-    //$uform->set_data($toform);
-    //displays the form
     $uform->display();
 }
 

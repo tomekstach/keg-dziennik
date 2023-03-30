@@ -22,8 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__ . '/../../config.php');
-require_once($CFG->dirroot . '/group/lib.php');
+require_once __DIR__ . '/../../config.php';
+require_once $CFG->dirroot . '/group/lib.php';
 
 global $USER, $PAGE;
 
@@ -34,30 +34,30 @@ $PAGE->set_title(get_string('localuserheader', 'local_addteachers'));
 $PAGE->requires->js_call_amd('local_addteachers/modal_addgroup');
 
 $templatecontext = (object) [
-  'headertext' => get_string('localgroupsheader', 'local_addteachers')
+    'headertext' => get_string('localgroupsheader', 'local_addteachers'),
 ];
 
-if (isguestuser()) {  // Force them to see system default, no editing allowed
-  // If guests are not allowed my moodle, send them to front page.
-  if (empty($CFG->allowguestmymoodle)) {
-    redirect(new moodle_url('/', array('redirect' => 0)));
-  }
+if (isguestuser()) { // Force them to see system default, no editing allowed
+    // If guests are not allowed my moodle, send them to front page.
+    if (empty($CFG->allowguestmymoodle)) {
+        redirect(new moodle_url('/', array('redirect' => 0)));
+    }
 
-  $userid = null;
-  $USER->editing = $edit = 0;  // Just in case
-  $context = context_system::instance();
-  $PAGE->set_blocks_editing_capability('moodle/my:configsyspages');  // unlikely :)
-} else {        // We are trying to view or edit our own My Moodle page
-  $userid = $USER->id;  // Owner of the page
-  $context = context_user::instance($USER->id);
-  $PAGE->set_blocks_editing_capability('moodle/my:manageblocks');
+    $userid = null;
+    $USER->editing = $edit = 0; // Just in case
+    $context = context_system::instance();
+    $PAGE->set_blocks_editing_capability('moodle/my:configsyspages'); // unlikely :)
+} else { // We are trying to view or edit our own My Moodle page
+    $userid = $USER->id; // Owner of the page
+    $context = context_user::instance($USER->id);
+    $PAGE->set_blocks_editing_capability('moodle/my:manageblocks');
 }
 
-$values     = optional_param('group', '', PARAM_ALPHANUMEXT);
-$courseid   = (int) explode('-', $values)[0];
-$groupid    = (int) explode('-', $values)[1];
+$values = optional_param('group', '', PARAM_ALPHANUMEXT);
+$courseid = (int) explode('-', $values)[0];
+$groupid = (int) explode('-', $values)[1];
 
-$groupname  = '';
+$groupname = '';
 
 $courses = enrol_get_all_users_courses($USER->id, true, ['id', 'fullname']);
 $groups = groups_get_my_groups();
@@ -66,51 +66,50 @@ $classes = [];
 
 // Find schools from 'dziennik'
 foreach ($groups as &$group) {
-  $contextCourse = context_course::instance($group->courseid);
-  $roles = get_user_roles($contextCourse, $USER->id, true);
-  $role = key($roles);
-  $group->rolename = $roles[$role]->shortname;
+    $contextCourse = context_course::instance($group->courseid);
+    $roles = get_user_roles($contextCourse, $USER->id, true);
+    $role = key($roles);
+    $group->rolename = $roles[$role]->shortname;
 
-  if ($group->courseid == '10') {
-    $groupings = $group;
-  } elseif ($group->rolename == 'teacherkeg') {
-    $classes[] = $group;
-  }
+    if ($group->courseid == '10') {
+        $groupings = $group;
+    } elseif ($group->rolename == 'teacherkeg') {
+        $classes[] = $group;
+    }
 }
 
 $templatecontext->groups = [];
 
-
 foreach ($classes as &$class) {
-  $teachers = groups_get_members($class->id, $fields = 'u.*', $sort = 'lastname ASC');
-  $course = get_course($class->courseid);
-  $class->groupname =  $course->shortname . ' - ' . $class->name;
+    $teachers = groups_get_members($class->id, $fields = 'u.*', $sort = 'lastname ASC');
+    $course = get_course($class->courseid);
+    $class->groupname = $course->shortname . ' - ' . $class->name;
 
-  $contextCourse = context_course::instance($class->courseid);
+    $contextCourse = context_course::instance($class->courseid);
 
-  $class->teachers = [];
-  $class->students = [];
+    $class->teachers = [];
+    $class->students = [];
 
-  foreach ($teachers as $teacher) {
-    profile_load_data($teacher);
-    $roles        = get_user_roles($contextCourse, $teacher->id, true);
-    $role         = key($roles);
+    foreach ($teachers as $teacher) {
+        profile_load_data($teacher);
+        $roles = get_user_roles($contextCourse, $teacher->id, true);
+        $role = key($roles);
 
-    if ($roles[$role]->shortname == 'teacher' and !findObjectById($class->teachers, $teacher->id)) {
-      $class->teachers[] = $teacher;
-    } elseif ($roles[$role]->shortname == 'student' and !findObjectById($class->students, $teacher->id)) {
-      $class->students[] = $teacher;
+        if ($roles[$role]->shortname == 'teacher' and !findObjectById($class->teachers, $teacher->id)) {
+            $class->teachers[] = $teacher;
+        } elseif ($roles[$role]->shortname == 'student' and !findObjectById($class->students, $teacher->id)) {
+            $class->students[] = $teacher;
+        }
     }
-  }
 
-  $templatecontext->groups[] = $class;
+    $templatecontext->groups[] = $class;
 }
 
 foreach ($courses as $key => &$course) {
-  $course->id = $course->id . '-' . intval(groups_get_grouping_by_name($course->id, $groupings->name));
-  if ($course->category != '3') {
-    unset($courses[$key]);
-  }
+    $course->id = $course->id . '-' . intval(groups_get_grouping_by_name($course->id, $groupings->name));
+    if ($course->category == '4') {
+        unset($courses[$key]);
+    }
 }
 
 $courses = array_values($courses);
@@ -121,13 +120,13 @@ $templatecontext->anyGroups = count($templatecontext->groups) > 0 ? true : false
 
 function findObjectById($array, $id)
 {
-  foreach ($array as $element) {
-    if ($id == $element->id) {
-      return $element;
+    foreach ($array as $element) {
+        if ($id == $element->id) {
+            return $element;
+        }
     }
-  }
 
-  return false;
+    return false;
 }
 
 $PAGE->set_context($context);

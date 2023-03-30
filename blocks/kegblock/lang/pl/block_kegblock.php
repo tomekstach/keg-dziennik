@@ -33,3 +33,6 @@ $string['addteachers'] = 'Dodaj nauczyciela';
 $string['teachersgroups'] = 'Klasy';
 $string['liststudents'] = 'Lista uczniów';
 $string['listteachers'] = 'Nauczyciele';
+$string['managecoordinators'] = 'Koordynatorzy';
+$string['addcoordinator'] = 'Dodaj koordynatora';
+$string['listcoordinators'] = 'Lista koordynatorów';

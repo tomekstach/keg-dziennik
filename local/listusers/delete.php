@@ -22,78 +22,55 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__ . '/../../config.php');
-require_once($CFG->dirroot . '/group/lib.php');
-require_once($CFG->dirroot . '/local/addusers/vendor/llagerlof/moodlerest/MoodleRest.php');
+require_once __DIR__ . '/../../config.php';
+require_once $CFG->dirroot . '/group/lib.php';
 
 global $USER, $PAGE;
 
 require_login();
 
 if (!isguestuser()) {
-  $tokenurl       = $CFG->wwwroot . '/login/token.php?username=wiktor&password=!53W7qbec&service=kegmanager';
-  $tokenresponse  = file_get_contents($tokenurl);
-  $tokenobject    = json_decode($tokenresponse);
+    $courses = enrol_get_all_users_courses($USER->id, true, ['id', 'fullname']);
+    $groups = groups_get_my_groups();
 
-  if (!empty($tokenobject->error)) {
-    \core\notification::add($tokenobject->error, \core\output\notification::NOTIFY_ERROR);
-  } else {
-    $baseurl      = $CFG->wwwroot . '/webservice/rest/server.php';
-    $MoodleRest   = new MoodleRest($baseurl, $tokenobject->token);
-    //$MoodleRest->setDebug();
+    $IDs = optional_param('id', '', PARAM_ALPHANUMEXT);
 
-    $courses  = enrol_get_all_users_courses($USER->id, true, ['id', 'fullname']);
-    $groups   = groups_get_my_groups();
-
-    $IDs      = optional_param('id', '', PARAM_ALPHANUMEXT);
-
-    $course   = (object) ['id' => explode('-', $IDs)[0], 'access' => false];
-    $group    = (object) ['id' => explode('-', $IDs)[1], 'access' => false];
-    $student  = (object) ['id' => explode('-', $IDs)[2], 'exists' => false];
+    $course = (object) ['id' => explode('-', $IDs)[0], 'access' => false];
+    $group = (object) ['id' => explode('-', $IDs)[1], 'access' => false];
+    $student = (object) ['id' => explode('-', $IDs)[2], 'exists' => false];
 
     foreach ($courses as $item) {
-      if ($item->id == $course->id) {
-        $contextCourse  = context_course::instance($course->id);
-        $roles          = get_user_roles($contextCourse, $USER->id, true);
-        $role           = key($roles);
-        $rolename       = $roles[$role]->shortname;
+        if ($item->id == $course->id) {
+            $contextCourse = context_course::instance($course->id);
+            $roles = get_user_roles($contextCourse, $USER->id, true);
+            $role = key($roles);
+            $rolename = $roles[$role]->shortname;
 
-        if ($rolename == 'teacher') {
-          $course->access = true;
-          $students = get_role_users(5, $contextCourse);
+            if ($rolename == 'teacher') {
+                $course->access = true;
+                $students = get_role_users(5, $contextCourse);
+            }
         }
-      }
     }
 
     if ($course->access === false) {
-      echo '{"message": "Error: You do not have access to this course!", "error": true}';
+        echo '{"message": "Error: You do not have access to this course!", "error": true}';
     } else {
-      foreach ($groups as $item) {
-        if ($item->courseid == $course->id and $item->id == $group->id) {
-          $group->access = true;
+        foreach ($groups as $item) {
+            if ($item->courseid == $course->id and $item->id == $group->id) {
+                $group->access = true;
+            }
         }
-      }
 
-      if ($group->access === false) {
-        echo '{"message": "Error: You do not have access to this group!", "error": true}';
-      } else {
-        if (!isset($students[$student->id])) {
-          echo '{"message": "Error: This student is not assigned to this group!", "error": true}';
+        if ($group->access === false) {
+            echo '{"message": "Error: You do not have access to this group!", "error": true}';
         } else {
-          $enrolments[] = [
-            'roleid'    => '5',
-            'userid'    => (int) $student->id,
-            'courseid'  => $course->id
-          ];
-          $members[] = [
-            'userid'    => (int) $student->id,
-            'groupid'   => $group->id
-          ];
-          // Run API methods
-          $response = $MoodleRest->request('enrol_manual_unenrol_users', array('enrolments' => $enrolments));
-          $response = $MoodleRest->request('core_group_delete_group_members', array('members' => $members));
+            if (!isset($students[$student->id])) {
+                echo '{"message": "Error: This student is not assigned to this group!", "error": true}';
+            } else {
+                // TODO: unenrolment
+                groups_remove_member($group->id, (int) $student->id);
+            }
         }
-      }
     }
-  }
 }

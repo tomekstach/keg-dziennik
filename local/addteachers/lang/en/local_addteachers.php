@@ -22,6 +22,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['addteachers'] = 'KEG Add Teachers';
+$string['pluginname'] = 'KEG Add Teachers';
 $string['groupname'] = 'Group name';
 $string['studentsgroup'] = 'Choose class';
 $string['missingclass'] = 'Missing class';
@@ -36,3 +38,4 @@ $string['localgroupsheader'] = 'Class list';
 $string['never'] = 'Never';
 $string['group'] = 'Group';
 $string['edit'] = 'Add group';
+$string['manage'] = 'Teachers list - managing';

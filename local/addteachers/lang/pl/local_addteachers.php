@@ -22,11 +22,13 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['addteachers'] = 'KEG Add Teachers';
+$string['pluginname'] = 'KEG Add Teachers';
 $string['groupname'] = 'Nazwa grupy';
 $string['studentsgroup'] = 'Wybierz klasę';
 $string['missingclass'] = 'Pominięto klasę';
 $string['localteacherheader'] = 'Dodaj nauczyciela';
-$string['localteachertext'] = 'Formularz umozliwia dodanie nowego nauczyciela do systemu oraz przypisanie go do klasy';
+$string['localteachertext'] = 'Formularz umożliwia dodanie nowego nauczyciela do systemu oraz przypisanie go do klasy';
 $string['formwascleared'] = 'Formularz został wyczyszczony!';
 $string['selectgroup'] = 'Proszę wybrać klasę!';
 $string['teacherwasadded'] = 'Nauczyciel został dodany do systemu!';
@@ -36,3 +38,4 @@ $string['localgroupsheader'] = 'Lista klas';
 $string['never'] = 'Nigdy';
 $string['group'] = 'Grupa';
 $string['edit'] = 'Dodaj grupę';
+$string['manage'] = 'Lista nauczycieli - zarządzaj';
