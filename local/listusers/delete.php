@@ -24,8 +24,9 @@
 
 require_once __DIR__ . '/../../config.php';
 require_once $CFG->dirroot . '/group/lib.php';
+require_once $CFG->dirroot . '/user/lib.php';
 
-global $USER, $PAGE;
+global $USER, $PAGE, $DB;
 
 require_login();
 
@@ -68,7 +69,15 @@ if (!isguestuser()) {
             if (!isset($students[$student->id])) {
                 echo '{"message": "Error: This student is not assigned to this group!", "error": true}';
             } else {
-                // TODO: unenrolment
+                $postfix = strtolower(random_string(10));
+                $userObj = $DB->get_record('user', ['id' => $student->id]);
+                $user = [
+                    'id' => $student->id,
+                    'username' => $userObj->username . '-' . $postfix,
+                    'email' => $userObj->username . '-' . $postfix . '@katalystengineering.org',
+                    'suspended' => '1',
+                ];
+                user_update_user($user, false, false);
                 groups_remove_member($group->id, (int) $student->id);
             }
         }
