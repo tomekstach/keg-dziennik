@@ -127,6 +127,14 @@ if ($uform->is_cancelled()) {
                 throw new Exception('Zła wartość w polu email!');
             }
 
+            // Check if user exists in the database
+            $userObj = $DB->get_record('user', ['email' => $fromform->email]);
+            if (is_object($userObj)) {
+                if ((int) $userObj->id > 0) {
+                    throw new Exception('Użytkownik o podanym adresie email istnieje już w systemie!');
+                }
+            }
+
             $plainPassword = clearString($fromform->password);
             $user = (object) [
                 // username = email
