@@ -79,6 +79,10 @@ if ($uform->is_cancelled()) {
     //Handle form cancel operation, if cancel button is present on form
     \core\notification::add(get_string('formwascleared', 'local_addcoordinator'), \core\output\notification::NOTIFY_WARNING);
     echo $OUTPUT->render_from_template('local_addcoordinator/manage', $templatecontext);
+
+    // Reset form
+    $uform->reset();
+    // Display form
     $uform->display();
 } else if ($fromform = $uform->get_data()) {
     //In this case you process validated data. $mform->get_data() returns data posted in form.
