@@ -80,9 +80,16 @@ class edit extends moodleform
 
         $this->add_action_buttons();
     }
+
     //Custom validation should be added here
     public function validation($data, $files)
     {
         return array();
+    }
+
+    // Reset form values
+    public function reset()
+    {
+        $this->_form->updateSubmission(null, null);
     }
 }
