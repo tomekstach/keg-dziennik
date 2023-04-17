@@ -71,7 +71,7 @@ if (!isguestuser()) {
             } else {
                 $postfix = strtolower(random_string(10));
                 $userObj = $DB->get_record('user', ['id' => $student->id]);
-                $user = [
+                $user = (object) [
                     'id' => $student->id,
                     'username' => $userObj->username . '-' . $postfix,
                     'email' => $userObj->username . '-' . $postfix . '@katalystengineering.org',
