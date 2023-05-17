@@ -45,34 +45,65 @@ if (!isguestuser()) {
     $course = (int) optional_param('course', '', PARAM_INT);
     $className = clearString(optional_param('group', '', PARAM_TEXT));
 
+    // TODO: change it to the config field
+    $teacherCourses = [
+        (object) ['courseID' => 14, 'relatedID' => 13],
+        (object) ['courseID' => 16, 'relatedID' => 15],
+        (object) ['courseID' => 18, 'relatedID' => 17],
+    ];
+
+    // Courses on the test platform
+    // $teacherCourses = [
+    //     (object) ['courseID' => 11, 'relatedID' => 13],
+    //     (object) ['courseID' => 6, 'relatedID' => 12],
+    // ];
+
+    $noGrouping = false;
+    $classID = 0;
+
+    // Get Course ID for teachers
+    foreach ($teacherCourses as $courseObject) {
+        if ($courseObject->relatedID === $course) {
+            $noGrouping = true;
+        }
+    }
+
     if ($course === 0) {
         echo '{"message": "Message: Proszę wybrać kurs!", "error": true}';
     } elseif (strlen($className) < 2) {
         echo '{"message": "Message: Proszę podać poprawną nazwę klasy!", "error": true}';
     } else {
         try {
-            // Check if school exists in the course
-            if (groups_get_grouping_by_name($course, $schoolName) !== false) {
-                throw new Exception('Podana szkoła już istnieje w wybranym kursie!');
+            if (!$noGrouping) {
+                // Check if school exists in the course
+                if (groups_get_grouping_by_name($course, $schoolName) !== false) {
+                    throw new Exception('Podana szkoła już istnieje w wybranym kursie!');
+                }
+
+                // Add group in the selected course for the school (main group - groups_create_grouping($data, $editoroptions=null))
+                $schoolData = (object) [
+                    'name' => clearString($schoolName),
+                    'courseid' => $course,
+                ];
+                $schoolID = groups_create_grouping($schoolData);
+            } else {
+                $classID = (int) groups_get_group_by_name($course, $className);
             }
 
-            // Add group in the selected course for the school (main group - groups_create_grouping($data, $editoroptions=null))
-            $schoolData = (object) [
-                'name' => clearString($schoolName),
-                'courseid' => $course,
-            ];
-            $schoolID = groups_create_grouping($schoolData);
+            if ($classID === 0) {
+                // Add group in the selected course for the class (standard group - groups_create_group($data, $editform=false, $editoroptions=null)) {
+                $classData = (object) [
+                    'name' => $className,
+                    'courseid' => $course,
+                ];
 
-            // Add group in the selected course for the class (standard group - groups_create_group($data, $editform=false, $editoroptions=null)) {
-            $classData = (object) [
-                'name' => $className,
-                'courseid' => $course,
-            ];
+                $classID = groups_create_group($classData);
+            }
 
-            $classID = groups_create_group($classData);
-
-            // Assigne class group to the school one - groups_assign_grouping($groupingid, $groupid)
-            groups_assign_grouping($schoolID, $classID);
+            if (!$noGrouping) {
+                // Assigne class group to the school one - groups_assign_grouping($groupingid, $groupid)
+                groups_assign_grouping($schoolID, $classID);
+            }
 
             enrol_try_internal_enrol($course, $coordinatorID, 9);
 

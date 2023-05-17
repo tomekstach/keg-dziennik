@@ -26,5 +26,5 @@
 defined('MOODLE_INTERNAL') || die;
 
 $plugin->component = 'local_addcoordinator';
-$plugin->version = 2022090300;
+$plugin->version = 2023051700;
 $plugin->requires = 2020110900;

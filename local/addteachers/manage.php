@@ -18,7 +18,7 @@
  * Readme file for local customisations
  *
  * @package    local_addteachers
- * @copyright  2021 AstoSoft (https://astosoft.pl)
+ * @copyright  2021+ AstoSoft (https://astosoft.pl)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -100,19 +100,39 @@ if ($uform->is_cancelled()) {
 
         foreach ($groups as $group) {
             if ($group->id == $groupID) {
-                $courseID = $group->courseid;
+                $courseID = (int) $group->courseid;
             }
         }
 
-        // Find schools from 'dziennik'
-        foreach ($groups as $group) {
-            if ($group->courseid == '10') {
-                $context = context_course::instance($group->courseid);
-                $roles = get_user_roles($context, $USER->id, true);
-                $role = key($roles);
-                $rolename = $roles[$role]->shortname;
-                if ($rolename == 'teacherkeg') {
-                    $groupings[] = $group->name;
+        // TODO: change it to the config field
+        $teacherCourses = [
+            (object) ['courseID' => 14, 'relatedID' => 13],
+            (object) ['courseID' => 16, 'relatedID' => 15],
+            (object) ['courseID' => 18, 'relatedID' => 17],
+        ];
+
+        // Courses on the test platform
+        // $teacherCourses = [
+        //     (object) ['courseID' => 11, 'relatedID' => 13],
+        //     (object) ['courseID' => 6, 'relatedID' => 12],
+        // ];
+
+        $courseRelatedID = 0;
+        $groupRelatedID = 0;
+
+        // Get Course ID for teachers
+        foreach ($teacherCourses as $courseObject) {
+            if ($courseObject->courseID === $courseID) {
+                $courseRelatedID = $courseObject->relatedID;
+            }
+        }
+
+        // Get Group ID for Course for teachers
+        if ($courseRelatedID > 0) {
+            // Find schools from teacher courses
+            foreach ($groups as $group) {
+                if ((int) $group->courseid === $courseRelatedID) {
+                    $groupRelatedID = (int) $group->id;
                 }
             }
         }
@@ -182,10 +202,19 @@ if ($uform->is_cancelled()) {
             ];
             $DB->insert_record('block_instances', $instanceData);
 
+            // Add teacher to the Course
             enrol_try_internal_enrol($courseID, $user->id, 4);
-            enrol_try_internal_enrol(10, $user->id, 5);
             groups_add_member($groupID, $user->id);
+
+            // Add teacher to the Dziennik
+            enrol_try_internal_enrol(10, $user->id, 5);
             groups_add_member($groupingID, $user->id);
+
+            // Add teacher to the Course for teachers
+            if ($courseRelatedID > 0 and $groupRelatedID > 0) {
+                enrol_try_internal_enrol($courseRelatedID, $user->id, 5);
+                groups_add_member($groupRelatedID, $user->id);
+            }
 
             $templatecontext->teachers[] = (object) [
                 'lp' => 1,

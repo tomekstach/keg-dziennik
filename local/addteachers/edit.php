@@ -18,7 +18,7 @@
  * Readme file for local customisations
  *
  * @package    local_addteachers
- * @copyright  2021 AstoSoft (https://astosoft.pl)
+ * @copyright  2021+ AstoSoft (https://astosoft.pl)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -32,15 +32,51 @@ require_login();
 if (!isguestuser()) {
     $groups = groups_get_my_groups();
 
+    // TODO: change it to the config field
+    $teacherCourses = [
+        (object) ['courseID' => 14, 'relatedID' => 13],
+        (object) ['courseID' => 16, 'relatedID' => 15],
+        (object) ['courseID' => 18, 'relatedID' => 17],
+    ];
+
+    // Courses on the test platform
+    // $teacherCourses = [
+    //     (object) ['courseID' => 11, 'relatedID' => 13],
+    //     (object) ['courseID' => 6, 'relatedID' => 12],
+    // ];
+
     $teacher = (object) ["id" => optional_param('id', '', PARAM_INT), 'exists' => false];
     $group = (object) ["id" => optional_param('group', 0, PARAM_INT), 'access' => false];
+
+    $teacher->id = (int) $teacher->id;
+    $group->id = (int) $group->id;
+    $courseID = 0;
+    $courseRelatedID = 0;
+    $groupRelatedID = 0;
 
     if ($group->id == 0) {
         echo '{"message": "Error: Nie wybrano klasy!", "error": true}';
     } else {
         foreach ($groups as $item) {
-            if ($item->id == $group->id) {
+            if ((int) $item->id === $group->id) {
                 $group->access = true;
+                $courseID = (int) $item->courseid;
+
+                // Get Course ID for teachers
+                foreach ($teacherCourses as $courseObject) {
+                    if ($courseObject->courseID === $courseID) {
+                        $courseRelatedID = $courseObject->relatedID;
+                    }
+                }
+
+                // Get Group ID for Course for teachers
+                if ($courseRelatedID > 0) {
+                    foreach ($groups as $group) {
+                        if ((int) $group->courseid === $courseRelatedID) {
+                            $groupRelatedID = (int) $group->id;
+                        }
+                    }
+                }
             }
         }
 
@@ -48,7 +84,15 @@ if (!isguestuser()) {
             echo '{"message": "Error: Nie masz uprawnień do tej klasy!", "error": true}';
         } else {
             try {
-                groups_add_member((int) $group->id, (int) $teacher->id);
+                groups_add_member((int) $group->id, $teacher->id);
+                enrol_try_internal_enrol($courseID, $teacher->id, 4);
+
+                // Add teacher to the Course for teachers
+                if ($courseRelatedID > 0 and $groupRelatedID > 0) {
+                    enrol_try_internal_enrol($courseRelatedID, $teacher->id, 5);
+                    groups_add_member($groupRelatedID, $teacher->id);
+                }
+
                 echo '{"message": "Message: Dane zostały zapisane poprawnie!", "error": false}';
             } catch (Exception $th) {
                 echo '{"message": "' . $th->getMessage() . '", "error": true}';
