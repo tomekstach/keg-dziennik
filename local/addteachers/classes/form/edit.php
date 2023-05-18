@@ -43,6 +43,24 @@ class edit extends moodleform
         //print_r($courses);
         //print_r($groups);
 
+        // TODO: change it to the config field
+        $teacherCourses = [
+            (object) ['courseID' => 14, 'relatedID' => 13],
+            (object) ['courseID' => 16, 'relatedID' => 15],
+            (object) ['courseID' => 18, 'relatedID' => 17],
+        ];
+
+        // Courses on the test platform
+        // $teacherCourses = [
+        //     (object) ['courseID' => 11, 'relatedID' => 13],
+        //     (object) ['courseID' => 6, 'relatedID' => 12],
+        // ];
+
+        // We need new structure to search relatedIDs
+        foreach ($teacherCourses as $key => $value) {
+            $teacherCourses[$key] = $value->relatedID;
+        }
+
         // Find schools from 'dziennik'
         foreach ($groups as $group) {
             if ($group->courseid == '10') {
@@ -59,23 +77,25 @@ class edit extends moodleform
         // Find schools in courses where user has role teacherkeg and it is not 'dziennik'
         if (count($groupings) > 0) {
             foreach ($courses as $course) {
-                if ($course->category != '4') {
-                    $context = context_course::instance($course->id);
-                    $roles = get_user_roles($context, $USER->id, true);
-                    $role = key($roles);
-                    $rolename = $roles[$role]->shortname;
+                if (!in_array((int) $course->id, $teacherCourses)) {
+                    if ($course->category != '4') {
+                        $context = context_course::instance($course->id);
+                        $roles = get_user_roles($context, $USER->id, true);
+                        $role = key($roles);
+                        $rolename = $roles[$role]->shortname;
 
-                    if ($rolename == 'teacherkeg') {
-                        foreach ($groupings as $group) {
-                            $parentGroup = new \stdClass;
-                            $parentGroup->courseid = $course->id;
-                            $parentGroup->coursename = $course->shortname;
-                            $parentGroup->groupingid = intval(groups_get_grouping_by_name($course->id, $group->name));
-                            $parentGroup->schoolid = intval($group->id);
+                        if ($rolename == 'teacherkeg') {
+                            foreach ($groupings as $group) {
+                                $parentGroup = new \stdClass ();
+                                $parentGroup->courseid = $course->id;
+                                $parentGroup->coursename = $course->shortname;
+                                $parentGroup->groupingid = intval(groups_get_grouping_by_name($course->id, $group->name));
+                                $parentGroup->schoolid = intval($group->id);
 
-                            if ($parentGroup->groupingid > 0) {
-                                $parentGroup->groupingname = groups_get_grouping_name($parentGroup->groupingid);
-                                $parentGroups[] = $parentGroup;
+                                if ($parentGroup->groupingid > 0) {
+                                    $parentGroup->groupingname = groups_get_grouping_name($parentGroup->groupingid);
+                                    $parentGroups[] = $parentGroup;
+                                }
                             }
                         }
                     }

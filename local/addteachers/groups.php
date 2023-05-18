@@ -57,6 +57,24 @@ $values = optional_param('group', '', PARAM_ALPHANUMEXT);
 $courseid = (int) explode('-', $values)[0];
 $groupid = (int) explode('-', $values)[1];
 
+// TODO: change it to the config field
+$teacherCourses = [
+    (object) ['courseID' => 14, 'relatedID' => 13],
+    (object) ['courseID' => 16, 'relatedID' => 15],
+    (object) ['courseID' => 18, 'relatedID' => 17],
+];
+
+// Courses on the test platform
+// $teacherCourses = [
+//     (object) ['courseID' => 11, 'relatedID' => 13],
+//     (object) ['courseID' => 6, 'relatedID' => 12],
+// ];
+
+// We need new structure to search relatedIDs
+foreach ($teacherCourses as $key => $value) {
+    $teacherCourses[$key] = $value->relatedID;
+}
+
 $groupname = '';
 
 $courses = enrol_get_all_users_courses($USER->id, true, ['id', 'fullname']);
@@ -81,33 +99,35 @@ foreach ($groups as &$group) {
 $templatecontext->groups = [];
 
 foreach ($classes as &$class) {
-    $teachers = groups_get_members($class->id, $fields = 'u.*', $sort = 'lastname ASC');
-    $course = get_course($class->courseid);
-    $class->groupname = $course->shortname . ' - ' . $class->name;
+    if (!in_array((int) $class->courseid, $teacherCourses)) {
+        $teachers = groups_get_members($class->id, $fields = 'u.*', $sort = 'lastname ASC');
+        $course = get_course($class->courseid);
+        $class->groupname = $course->shortname . ' - ' . $class->name;
 
-    $contextCourse = context_course::instance($class->courseid);
+        $contextCourse = context_course::instance($class->courseid);
 
-    $class->teachers = [];
-    $class->students = [];
+        $class->teachers = [];
+        $class->students = [];
 
-    foreach ($teachers as $teacher) {
-        profile_load_data($teacher);
-        $roles = get_user_roles($contextCourse, $teacher->id, true);
-        $role = key($roles);
+        foreach ($teachers as $teacher) {
+            profile_load_data($teacher);
+            $roles = get_user_roles($contextCourse, $teacher->id, true);
+            $role = key($roles);
 
-        if ($roles[$role]->shortname == 'teacher' and !findObjectById($class->teachers, $teacher->id)) {
-            $class->teachers[] = $teacher;
-        } elseif ($roles[$role]->shortname == 'student' and !findObjectById($class->students, $teacher->id)) {
-            $class->students[] = $teacher;
+            if ($roles[$role]->shortname == 'teacher' and !findObjectById($class->teachers, $teacher->id)) {
+                $class->teachers[] = $teacher;
+            } elseif ($roles[$role]->shortname == 'student' and !findObjectById($class->students, $teacher->id)) {
+                $class->students[] = $teacher;
+            }
         }
-    }
 
-    $templatecontext->groups[] = $class;
+        $templatecontext->groups[] = $class;
+    }
 }
 
 foreach ($courses as $key => &$course) {
     $course->id = $course->id . '-' . intval(groups_get_grouping_by_name($course->id, $groupings->name));
-    if ($course->category == '4') {
+    if ($course->category == '4' or in_array((int) $course->id, $teacherCourses)) {
         unset($courses[$key]);
     }
 }

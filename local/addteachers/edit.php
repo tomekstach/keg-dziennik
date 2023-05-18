@@ -71,9 +71,9 @@ if (!isguestuser()) {
 
                 // Get Group ID for Course for teachers
                 if ($courseRelatedID > 0) {
-                    foreach ($groups as $group) {
-                        if ((int) $group->courseid === $courseRelatedID) {
-                            $groupRelatedID = (int) $group->id;
+                    foreach ($groups as $itemGroup) {
+                        if ((int) $itemGroup->courseid === $courseRelatedID) {
+                            $groupRelatedID = (int) $itemGroup->id;
                         }
                     }
                 }
