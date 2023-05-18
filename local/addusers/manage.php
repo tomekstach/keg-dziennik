@@ -61,6 +61,13 @@ $PAGE->set_pagetype('my-index');
 
 echo $OUTPUT->header();
 
+if (!function_exists('clearString')) {
+    function clearString($string)
+    {
+        return addslashes(stripslashes(strip_tags(trim($string))));
+    }
+}
+
 $uform = new edit();
 
 $templatecontext->anyStudents = false;
@@ -112,9 +119,10 @@ if ($uform->is_cancelled()) {
 
         for ($i = 0; $i < (int) $fromform->studentsnumber; $i++) {
             $username = 'g' . $groups[$fromform->group]->groupid . 'u' . ($userNumber + $i);
+            $plainPassword = clearString(generatePassword());
             $user = [
                 'username' => $username,
-                'password' => generatePassword(),
+                'password' => hash_internal_user_password($plainPassword),
                 'firstname' => 'Student',
                 'lastname' => $username,
                 'email' => $username . '@katalystengineering.org',
@@ -125,6 +133,9 @@ if ($uform->is_cancelled()) {
             ];
 
             $user['id'] = (int) user_create_user($user, false, false);
+            $user['plainPassword'] = $plainPassword;
+
+            user_add_password_history($user['id'], $plainPassword);
 
             \core\event\user_created::create_from_userid($user['id'])->trigger();
             set_user_preference('auth_forcepasswordchange', 1, $user['id']);
@@ -146,9 +157,9 @@ if ($uform->is_cancelled()) {
                 $templatecontext->students[] = (object) [
                     'lp' => $i,
                     'name' => $user['username'],
-                    'password' => $user['password'],
+                    'password' => $user['plainPassword'],
                 ];
-                fputcsv($fp, [$i, $user['username'], $user['password']]);
+                fputcsv($fp, [$i, $user['username'], $user['plainPassword']]);
                 $i++;
             }
 
