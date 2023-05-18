@@ -84,8 +84,8 @@ if (!isguestuser()) {
             echo '{"message": "Error: Nie masz uprawnień do tej klasy!", "error": true}';
         } else {
             try {
-                groups_add_member((int) $group->id, $teacher->id);
                 enrol_try_internal_enrol($courseID, $teacher->id, 4);
+                groups_add_member((int) $group->id, $teacher->id);
 
                 // Add teacher to the Course for teachers
                 if ($courseRelatedID > 0 and $groupRelatedID > 0) {

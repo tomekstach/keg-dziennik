@@ -133,9 +133,9 @@ foreach ($classes as &$class) {
                             }
                         }
                     }
-                }
 
-                $allTeachers[] = $teacher;
+                    $allTeachers[] = $teacher;
+                }
             } else {
                 $roles = get_user_roles($contextCourse, $teacherFound->id, true);
                 $role = key($roles);

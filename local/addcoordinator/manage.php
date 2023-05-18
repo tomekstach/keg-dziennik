@@ -189,11 +189,9 @@ if ($uform->is_cancelled()) {
             $schoolLessonDiaryID = groups_create_group($schoolLessonDiaryData);
 
             enrol_try_internal_enrol($fromform->course, $user->id, 9);
-
-            enrol_try_internal_enrol(10, $user->id, 9);
-
             groups_add_member($classID, $user->id);
 
+            enrol_try_internal_enrol(10, $user->id, 9);
             groups_add_member($schoolLessonDiaryID, $user->id);
 
             \core\notification::add(get_string('coordinatorwasadded', 'local_addcoordinator'), \core\output\notification::NOTIFY_SUCCESS);
