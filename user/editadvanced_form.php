@@ -23,11 +23,11 @@
  */
 
 if (!defined('MOODLE_INTERNAL')) {
-    die('Direct access to this script is forbidden.'); //  It must be included from a Moodle page.
+    die('Direct access to this script is forbidden.');    //  It must be included from a Moodle page.
 }
 
-require_once $CFG->dirroot . '/lib/formslib.php';
-require_once $CFG->dirroot . '/user/lib.php';
+require_once($CFG->dirroot.'/lib/formslib.php');
+require_once($CFG->dirroot.'/user/lib.php');
 
 /**
  * Class user_editadvanced_form.
@@ -35,14 +35,12 @@ require_once $CFG->dirroot . '/user/lib.php';
  * @copyright 1999 Martin Dougiamas  http://dougiamas.com
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class user_editadvanced_form extends moodleform
-{
+class user_editadvanced_form extends moodleform {
 
     /**
      * Define the form.
      */
-    public function definition()
-    {
+    public function definition() {
         global $USER, $CFG, $COURSE;
 
         $mform = $this->_form;
@@ -58,7 +56,7 @@ class user_editadvanced_form extends moodleform
         $userid = $user->id;
 
         // Accessibility: "Required" is bad legend text.
-        $strgeneral = get_string('general');
+        $strgeneral  = get_string('general');
         $strrequired = get_string('required');
 
         // Add some extra hidden fields.
@@ -122,7 +120,10 @@ class user_editadvanced_form extends moodleform
         }
 
         $purpose = user_edit_map_field_purpose($userid, 'password');
-        $mform->addElement('passwordunmask', 'newpassword', get_string('newpassword'), 'size="20"' . $purpose);
+        $mform->addElement('passwordunmask', 'newpassword', get_string('newpassword'),
+            'maxlength="'.MAX_PASSWORD_CHARACTERS.'" size="20"' . $purpose);
+        $mform->addRule('newpassword', get_string('maximumchars', '', MAX_PASSWORD_CHARACTERS),
+            'maxlength', MAX_PASSWORD_CHARACTERS, 'client');
         $mform->addHelpButton('newpassword', 'newpassword');
         $mform->setType('newpassword', core_user::get_property_type('password'));
         $mform->disabledIf('newpassword', 'createpassword', 'checked');
@@ -161,6 +162,7 @@ class user_editadvanced_form extends moodleform
         }
 
         $this->add_action_buttons(true, $btnstring);
+        $mform->set_sticky_footer('buttonar');
 
         $this->set_data($user);
     }
@@ -168,8 +170,7 @@ class user_editadvanced_form extends moodleform
     /**
      * Extend the form definition after data has been parsed.
      */
-    public function definition_after_data()
-    {
+    public function definition_after_data() {
         global $USER, $CFG, $DB, $OUTPUT;
 
         $mform = $this->_form;
@@ -241,6 +242,14 @@ class user_editadvanced_form extends moodleform
             }
         }
 
+        // User changing their preferred theme will delete the cache for this theme.
+        if ($mform->elementExists('theme') && $mform->isSubmitted()) {
+            $theme = $mform->getSubmitValue('theme');
+            if (!empty($user) && ($theme != $user->theme)) {
+                theme_delete_used_in_context_cache($theme, $user->theme);
+            }
+        }
+
         // Next the customisable profile fields.
         profile_definition_after_data($mform, $userid);
     }
@@ -251,11 +260,10 @@ class user_editadvanced_form extends moodleform
      * @param array $files
      * @return array|bool
      */
-    public function validation($usernew, $files)
-    {
+    public function validation($usernew, $files) {
         global $CFG, $DB;
 
-        $usernew = (object) $usernew;
+        $usernew = (object)$usernew;
         $usernew->username = trim($usernew->username);
 
         $user = $DB->get_record('user', array('id' => $usernew->id));
@@ -310,7 +318,7 @@ class user_editadvanced_form extends moodleform
                 $params = array(
                     'email' => $usernew->email,
                     'mnethostid' => $CFG->mnet_localhost_id,
-                    'userid' => $usernew->id,
+                    'userid' => $usernew->id
                 );
                 // If there are other user(s) that already have the same email, show an error.
                 if ($DB->record_exists_select('user', $select, $params)) {
@@ -318,6 +326,8 @@ class user_editadvanced_form extends moodleform
                 }
             }
         }
+
+        $err += useredit_validate_description_length((array)$usernew);
 
         // Next the customisable profile fields.
         $err += profile_validation($usernew, $files);
@@ -329,3 +339,5 @@ class user_editadvanced_form extends moodleform
         }
     }
 }
+
+

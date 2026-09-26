@@ -39,8 +39,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright 2014 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class frontend
-{
+abstract class frontend {
     /**
      * Decides whether this plugin should be available in a given course. The
      * plugin can do this depending on course or system settings.
@@ -51,8 +50,8 @@ abstract class frontend
      * @param \cm_info $cm Course-module currently being edited (null if none)
      * @param \section_info $section Section currently being edited (null if none)
      */
-    protected function allow_add($course, \cm_info $cm = null,
-        \section_info $section = null) {
+    protected function allow_add($course, ?\cm_info $cm = null,
+            ?\section_info $section = null) {
         return true;
     }
 
@@ -65,8 +64,7 @@ abstract class frontend
      *
      * @return array Array of required string identifiers
      */
-    protected function get_javascript_strings()
-    {
+    protected function get_javascript_strings() {
         return array();
     }
 
@@ -80,8 +78,8 @@ abstract class frontend
      * @param \section_info $section Section currently being edited (null if none)
      * @return array Array of parameters for the JavaScript function
      */
-    protected function get_javascript_init_params($course, \cm_info $cm = null,
-        \section_info $section = null) {
+    protected function get_javascript_init_params($course, ?\cm_info $cm = null,
+            ?\section_info $section = null) {
         return array();
     }
 
@@ -90,8 +88,7 @@ abstract class frontend
      *
      * @return string The component name for this plugin
      */
-    protected function get_component()
-    {
+    protected function get_component() {
         return preg_replace('~^(availability_.*?)\\\\frontend$~', '$1', get_class($this));
     }
 
@@ -102,8 +99,8 @@ abstract class frontend
      * @param \cm_info $cm Course-module currently being edited (null if none)
      * @param \section_info $section Section currently being edited (null if none)
      */
-    public static function include_all_javascript($course, \cm_info $cm = null,
-        \section_info $section = null) {
+    public static function include_all_javascript($course, ?\cm_info $cm = null,
+            ?\section_info $section = null) {
         global $PAGE;
 
         // Prepare array of required YUI modules. It is bad for performance to
@@ -111,7 +108,7 @@ abstract class frontend
         // into a single call (the main init function will call init for each
         // plugin).
         $modules = array('moodle-core_availability-form', 'base', 'node',
-            'panel', 'moodle-core-notification-dialogue', 'json');
+                'panel', 'moodle-core-notification-dialogue', 'json');
 
         // Work out JS to include for all components.
         $pluginmanager = \core_plugin_manager::instance();
@@ -120,6 +117,11 @@ abstract class frontend
         foreach ($enabled as $plugin => $info) {
             // Create plugin front-end object.
             $class = '\availability_' . $plugin . '\frontend';
+            if (!class_exists($class)) {
+                continue;
+            }
+
+            /** @var \core_availability\frontend $frontend */
             $frontend = new $class();
 
             // Add to array of required YUI modules.
@@ -127,9 +129,12 @@ abstract class frontend
             $modules[] = 'moodle-' . $component . '-form';
 
             // Get parameters for this plugin.
-            $componentparams->{$plugin} = array($component,
+            $componentparams->{$plugin} = [
+                $component,
                 $frontend->allow_add($course, $cm, $section),
-                $frontend->get_javascript_init_params($course, $cm, $section));
+                $frontend->get_javascript_init_params($course, $cm, $section),
+                get_config('availability_' . $plugin, 'defaultdisplaymode'),
+            ];
 
             // Include strings for this plugin.
             $identifiers = $frontend->get_javascript_strings();
@@ -140,22 +145,22 @@ abstract class frontend
 
         // Include all JS (in one call). The init function runs on DOM ready.
         $PAGE->requires->yui_module($modules,
-            'M.core_availability.form.init', array($componentparams), null, true);
+                'M.core_availability.form.init', array($componentparams), null, true);
 
         // Include main strings.
         $PAGE->requires->strings_for_js(array('none', 'cancel', 'delete', 'choosedots'),
-            'moodle');
+                'moodle');
         $PAGE->requires->strings_for_js(array('addrestriction', 'invalid',
-            'listheader_sign_before', 'listheader_sign_pos',
-            'listheader_sign_neg', 'listheader_single',
-            'listheader_multi_after', 'listheader_multi_before',
-            'listheader_multi_or', 'listheader_multi_and',
-            'unknowncondition', 'hide_verb', 'hidden_individual',
-            'show_verb', 'shown_individual', 'hidden_all', 'shown_all',
-            'condition_group', 'condition_group_info', 'and', 'or',
-            'label_multi', 'label_sign', 'setheading', 'itemheading',
-            'missingplugin'),
-            'availability');
+                'listheader_sign_before', 'listheader_sign_pos',
+                'listheader_sign_neg', 'listheader_single',
+                'listheader_multi_after', 'listheader_multi_before',
+                'listheader_multi_or', 'listheader_multi_and',
+                'unknowncondition', 'hide_verb', 'hidden_individual',
+                'show_verb', 'shown_individual', 'hidden_all', 'shown_all',
+                'condition_group', 'condition_group_info', 'and', 'or',
+                'label_multi', 'label_sign', 'setheading', 'itemheading',
+                'missingplugin', 'disabled_verb'),
+                'availability');
     }
 
     /**
@@ -165,8 +170,7 @@ abstract class frontend
      * @param array $data Form data fields
      * @param array $errors Error array
      */
-    public static function report_validation_errors(array $data, array &$errors)
-    {
+    public static function report_validation_errors(array $data, array &$errors) {
         // Empty value is allowed!
         // AstoSoft - changed
         if (trim($data['availabilityconditionsjson']) === '') {
@@ -182,7 +186,7 @@ abstract class frontend
         if (!empty($decoded->errors)) {
             $error = '';
             foreach ($decoded->errors as $stringinfo) {
-                list($component, $stringname) = explode(':', $stringinfo);
+                list ($component, $stringname) = explode(':', $stringinfo);
                 if ($error !== '') {
                     $error .= ' ';
                 }
@@ -204,10 +208,10 @@ abstract class frontend
      * @return array Non-associative (numeric) array
      */
     protected static function convert_associative_array_for_js(array $inarray,
-        $keyname, $valuename) {
+            $keyname, $valuename) {
         $result = array();
         foreach ($inarray as $key => $value) {
-            $result[] = (object) array($keyname => $key, $valuename => $value);
+            $result[] = (object)array($keyname => $key, $valuename => $value);
         }
         return $result;
     }

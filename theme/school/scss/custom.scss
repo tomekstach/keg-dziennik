@@ -37,7 +37,6 @@ $siteviolet:$violetcolor !default;
 button:focus {
   outline: none;
 }
-
 #page-content {
   #region-main {
     padding: 0;
@@ -56,7 +55,9 @@ body {
   color: $bodyfontcolor;
   padding-top: 0;
 }
-
+.modal-backdrop.show{
+    display: none;
+}
 h1,
 h2,
 h3,
@@ -99,7 +100,7 @@ p {
 }
 
 .container-fluid {
-  max-width: 1200px;
+  max-width: 1500px !important;
 }
 
 a {
@@ -171,7 +172,7 @@ body#page-admin-theme-index {
 
 body[theme="school"] {
   .container-fluid {
-    max-width: 1300px !important;
+    max-width: 1400px !important;
   }
 }
 
@@ -251,7 +252,7 @@ td.submit input[disabled],
   #region-main {
     border: none !important;
     div[role="main"] {
-      overflow-x: hidden;
+//      overflow-x: hidden;
     }
   }
 }
@@ -373,6 +374,8 @@ body.pagelayout-frontpage.empty-region-side-post.used-region-side-pre {
       }
       ul.dropdown-list{
         display:none;
+        right: 0;
+        left: auto;
       }
       &:hover {
         .dropdown-list {
@@ -451,7 +454,7 @@ body.notloggedin{
       .popover-region{
           float: left;
         .nav-link{
-          padding: 14px 5px;
+          padding: 11px 5px;
         }
         .popover-region-toggle{
           &::before{
@@ -517,7 +520,19 @@ body.notloggedin{
     letter-spacing: 1px;
     color: #fff;
     padding: 0 0 0 25px;
-    margin: 28px 4px 0 0;
+    margin: 27px 4px 0 0;
+      li.editmode{
+                    border: none;
+                    padding: 0 !important;
+                    font-size: 14px;
+                    margin: 0 !important;
+                    margin-top: 2px !important;
+                    label{
+                        color: #909090 !important;
+                        display: none !important;
+                    }
+                   
+                }
     li {
       span {
         div.loginsection {
@@ -602,7 +617,7 @@ body.notloggedin{
                   background-color: $white;
                   border: 1px solid rgba(0, 0, 0, 0.2);
                   border-radius: 0;
-                  top: 30px !important;
+                  top: 14px !important;
                   left: 15px !important;
                   &::before {
                     content: '';
@@ -656,7 +671,10 @@ body.notloggedin{
     color: $white;
   }
   .nav-link.active {
-    background-color: $topsection;
+    border: none;
+    border-top: 3px solid $topsection;
+    background-color: #fff;
+    
   }
   .dropdown-item {
     &:active {
@@ -668,11 +686,23 @@ body.notloggedin{
 [data-region=right-hand-drawer].drawer{
 	.message-app{
 		background-color: $white;
+        margin-top: 10px;
+        .closewidget{
+            display: none !important;
+        }
 		.btn-link{
 		&:hover{
 		  color:$white;
 		}
 	  }
+    .list-group {
+    .list-group-item {
+      &:hover {
+        background-color: #e8e7e7 !important;
+        color: $black;
+      }
+    }
+  }
 	}
 }
 /*Especially For Moodle 3.9 End*/
@@ -784,7 +814,7 @@ body.pagelayout-login {
             transition: all 0.15s ease-in-out;
             &:hover{
               color:#eee;
-              background-color: transparent;
+              background-color: transparent !important;
               outline:none;
                b.mobile-arrow{
                 &::after{
@@ -801,7 +831,7 @@ body.pagelayout-login {
               line-height: 25px;
               position: absolute;
               right: 0;
-              top: 20px;
+              top: 15px;
               text-align: right;
               font-size: 16px;
               font-weight: normal;
@@ -1195,7 +1225,7 @@ a.link-buy {
   nav.slideblock {
     position: fixed;
     top: 0;
-    left: -1px;
+    left: 0;
     background-color: $white;
     border-bottom: 1px solid #ccc;
     border-right: 1px solid #ccc;
@@ -1322,6 +1352,15 @@ div[data-flexitour="step-background"] {
       }
     }
   }
+        .block_tree{
+        .tree_item.branch{
+            &::before{
+               margin-right: 6px !important;
+               font-size: 13px !important;
+            }
+        }
+    }
+
 }
 
 .block_myoverview {
@@ -1532,7 +1571,8 @@ div.simplesearchform {
   padding-bottom: 20px;
   display: inherit;
   width: 100%;
-    .form-inline{
+    .form-inline,
+    .simplesearchform{
         margin: 0 auto;
     }
   fieldset.invisiblefieldset {
@@ -1796,6 +1836,10 @@ div.simplesearchform {
 */
 
 .morecontent {
+    span.font-weight-bold{
+        display: inline-block!important;
+        margin-right: 5px;
+    }
   span {
     display: none;
   }
@@ -1817,7 +1861,11 @@ div.simplesearchform {
     padding-left: 0 !important;
   }
 }
-
+.course-section{
+    .section-item{
+        border-radius: 0;
+    }
+}
 #mycourse-wrapper {
   .course-section {
     padding-right: 0 !important;
@@ -1905,10 +1953,15 @@ p.tagline {
         padding-right: 0;
         margin-left: 1.5%;
       }
+     .course-section{
+          border: none;  
+     }    
       .coursebox {
         padding: 0 !important;
         background-color: $white !important;
         margin-bottom: 20px;
+        border-radius: 0;
+        border: none;
         .courseimage {
           width: 100%;
           height: auto;
@@ -3018,9 +3071,7 @@ body#page-login-index {
 .block_mnet_hosts,
 .block_myprofile,
 .block_glossary_random,
-.block_completionstatus,
-.block_calendar_month .minicalendar td.today,
-body#page-calendar-view .maincalendar .calendartable td.today {
+.block_completionstatus{
   background-color: $sitegreen;
 }
 
@@ -3202,7 +3253,7 @@ section.block {
   =========A==Course Page Styling Start====== 
 */
 
-body.path-course-view {
+body.path-course {
   .completionprogress {
     float: none !important;
     margin-bottom: 20px;
@@ -3211,10 +3262,17 @@ body.path-course-view {
     ul {
       li.section {
         background-color: #f5f5f5;
-        border: 1px solid #ddd;
         margin-top: 25px;
         border-bottom: 10px solid $bodyfontcolor;
         padding-bottom: 2em;
+          .btn.btn-icon {
+          border-radius: 0;
+          &:hover,
+          &:active,
+          &:focus {
+            background-color: transparent;
+          }
+        }
         a {
           color: $black;
           &:hover {
@@ -3223,22 +3281,20 @@ body.path-course-view {
         }
         h3.sectionname {
           font-size: 14px;
-          background-color: $bodyfontcolor;
           float: left;
-          color: $white;
+          color: $black;
           text-transform: uppercase;
-          padding: 15px 20px 15px 40px;
+          padding: 9px 20px 9px 40px;
           text-align: right;
           margin-bottom: 30px;
           position: relative;
           left: 0;
           margin-left: -36px;
-          border-right: 7px solid #c5c5c5;
           width: auto;
           height: auto;
           top: 0;
           a {
-            color: $white;
+            color: $black;
           }
         }
         span.moodle-core-dragdrop-draghandle {
@@ -3273,9 +3329,23 @@ body.path-course-view {
         }
       }
     }
-  }
-}
 
+  }
+   fieldset{
+        padding: 0 5px;
+   }
+}
+body#page-course-index-category,
+body#page-course-search{
+    #region-main-box{
+        form.simplesearchform{
+                margin: 0;
+            .input-group{
+                margin: 0 auto;
+            }
+        }
+    }
+}
 
 /*
   =========A==Course Page Styling End====== 
@@ -3316,6 +3386,8 @@ body.pagelayout-coursecategory {
           background-color: #eee;
           padding: 10px;
           font-weight: 600;
+          width: 100%;
+          margin-bottom: 20px;
           a {
             color: $topsection;
             background-image: none !important;
@@ -3366,46 +3438,37 @@ body.pagelayout-login {
       #region-main {
         margin: 0 auto;
         justify-content: center!important;
+          #custom-logo,
+          h1.card-header{
+             display: none !important;
+          }
+          
         .justify-content-center.mt-3 {
           margin-top: 0 !important;
         }
-        .card {
+        .main-content {
           background-color: transparent;
           border-radius: 0;
           border: none;
           .custom-logo {
             display: none;
           }
-          .form-group {
-            position: relative;
-            margin-bottom: 0 !important;
-            input[type="text"],
-            input[type="password"] {
-              padding: 4px 6px;
-              border-radius: 0;
-            }
-            .fa {
-              position: absolute;
-              top: 14px;
-              left: 10px;
-              color: #a2a6ad;
-            }
-          }
-          .card-body {
-            margin: 0 auto;
-            margin-bottom: 20px;
-            float: none;
+          .loginform,
+            .signupform{
+            margin: 5% auto;
+            padding: 40px;
             background-color: transparent;
             background-repeat: repeat;
             -moz-box-shadow: 0 0 5px $black;
             -webkit-box-shadow: 0 0 5px$black;
             box-shadow: 0 0 5px $black;
             color: $white;
-            padding: 20px;
             font-size: 14px;
-            .login-wrapper {
-              .username,
-              .password {
+              text-align: center;
+              h1.login-heading{
+                  display: none;
+              }
+              .login-form{
                 input#username,
                 input#password {
                   border-radius: 0;
@@ -3424,25 +3487,11 @@ body.pagelayout-login {
                   padding-left: 0;
                   letter-spacing: 1px;
                 }
-              }
-              i.fa-question-circle {
-                color: #ff6000 !important;
-                &:hover {
-                  color: $black !important;
+                  .input-group {
+                        display: inherit;
                 }
-                ;
-              }
-            }
-            .rememberpass {
-              text-align: center;
-              label[for="rememberusername"] {
-                margin-bottom: 1rem !important;
-              }
-            }
-            form#login,
-            form#guestlogin,
-            form#signup {
-              button[type="submit"] {
+                }
+              .btn{
                 background-color: transparent;
                 background-image: none;
                 filter: none;
@@ -3466,49 +3515,18 @@ body.pagelayout-login {
                   background-color: transparent;
                   background-repeat: repeat;
                 }
-                ;
               }
-            }
-            .card-title {
-              display: none;
-            }
-            .forgetpass {
-              margin-top: 0 !important;
-              p {
-                a {
-                  color: $black;
-                }
+               h2.login-heading{
+                  margin: 20px 0;
               }
-            }
-          }
-        }
-        .btn {
-          padding: 9px 17px;
-        }
-        .orcolor {
-          background: #ec910e;
-          /* Old browsers */
-          background: -moz-linear-gradient(top, #ec910e 1%, #ec910e 100%);
-          /* FF3.6-15 */
-          background: -webkit-linear-gradient(top, #ec910e 1%, #ec910e 100%);
-          /* Chrome10-25,Safari5.1-6 */
-          background: linear-gradient(to bottom, #ec910e 1%, #ec910e 100%);
-          /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-          filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ec910e', endColorstr='#ec910e', GradientType=0);
-          /* IE6-9 */
-          &:hover,
-          &:active,
-          &:focus {
-            background: #ec910e;
-            /* Old browsers */
-            background: -moz-linear-gradient(top, #ec910e 0%, #ec910e 99%);
-            /* FF3.6-15 */
-            background: -webkit-linear-gradient(top, #ec910e 0%, #ec910e 99%);
-            /* Chrome10-25,Safari5.1-6 */
-            background: linear-gradient(to bottom, #ec910e 0%, #ec910e 99%);
-            /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ec910e', endColorstr='#ec910e', GradientType=0);
-            /* IE6-9 */
+              .d-flex{
+                  .login-languagemenu{
+                      margin: 20px auto 0 auto;
+                  }
+                  .btn{
+                      display: none;
+                  }
+              }
           }
         }
       }
@@ -3516,7 +3534,24 @@ body.pagelayout-login {
   }
 }
 
-
+body#page-login-signup{
+    #page{
+        #page-content{
+            #region-main{
+                .main-content{
+                    .signupform{
+                        .d-flex{
+                            .btn{
+                                display: block;
+                                font-size: 12px;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 /*
   =========A==Login Section Styling End======School 
 */
@@ -3696,17 +3731,19 @@ body.pagelayout-login {
     li {
       border: none;
       line-height: 20px;
-      a {
-        background-color: $sitegreen;
+      .nav-link {
+        background-color: $sitegreen !important;
         border: none;
         border-top: 3px solid transparent;
         border-radius: 0;
-        padding: 0;
-        color: #555;
+        padding: 15px 20px;
+        color: #000;
         cursor: pointer;
         display: block;
         margin-right: 2px;
-        h2 {
+        font-weight: bold;
+        width: 100%;
+        span {
           font-size: 14px;
           font-weight: 700;
           text-transform: capitalize;
@@ -3716,10 +3753,10 @@ body.pagelayout-login {
       }
     }
     li {
-      a.active {
+      .nav-link.active {
         border: none;
         border-top: 3px solid $sitegreen;
-        background-color: $white;
+        background-color: $white !important;
       }
     }
   }
@@ -3739,7 +3776,8 @@ body.pagelayout-login {
         padding-left: 20px;
         background-position: left center;
         margin-bottom: 10px;
-        a {
+          background-repeat: no-repeat;
+        button {
           color: #555;
         }
         span.numberofcourse {
@@ -3759,9 +3797,14 @@ body.pagelayout-login {
         background-color: transparent;
         .info {
           margin: 0 !important;
+            .coursename{
+                width: 100%;
+            }
           a {
             background-position: left center;
             color: #111;
+            background-repeat: no-repeat;
+            padding-left: 25px;
           }
           a[title="Summary"] {
             background-image: none !important;
@@ -3946,7 +3989,6 @@ body#page-calendar-view {
           background-color: #f8f8f8;
         }
         td.today {
-          background-color: $sitegreen;
           color: $white;
         }
       }
@@ -4322,6 +4364,17 @@ body.dir-rtl {
   =========A==RTL Styling End======School
 */
 
+.block .block_tree [aria-expanded="true"],
+.block .block_tree [aria-expanded='false']{
+    background-image: none !important;
+}
+.dropdown-item {
+  &:hover,
+  &:focus {
+    background-color: #e8e7e7;
+    color: $black;
+  }
+}
 
 /* For Device(Mobile and tab)*/
 
@@ -4333,7 +4386,20 @@ body.dir-rtl {
   #frontpage-course-list {
     overflow: hidden;
   }
-
+.top-page-header{
+ul.loginsection {
+      padding: 0 25px 0 0 !important;
+        li{
+            .usermenu{
+                span.userbutton{
+                    span.usertext{
+                        display: none !important;
+                    }
+                }
+            }
+        }
+    }
+}
   ul.main-menu.mobile-menu {
     background-color: $white;
     >li {
@@ -4435,7 +4501,7 @@ body.dir-rtl {
             height: 50px;
             line-height: 50px;
             font-size: 20px;
-            color: #fff!important;
+            color: #fff;
             text-align: center;
             background-color: #484848;
             transition: 0.5s ease;
@@ -4517,6 +4583,7 @@ body.dir-rtl {
   .tutors {
     .tutor-section {
       flex: 0 0 49% !important;
+        width: 100%;
     }
   }
   .tutors {
@@ -4526,6 +4593,9 @@ body.dir-rtl {
       }
     }
   }
+    #page-footer{
+       padding: 2em 15px;
+    }
 }
 
 
@@ -4743,12 +4813,14 @@ body.dir-rtl {
       }
     }
     ul.loginsection {
+        padding: 0 !important;
       li {
+          margin: 0 !important;
         .usermenu {
           .action-menu {
             .dropdown-toggle {
               display: block;
-              margin-right: 10px;
+              margin-right: 0 !important;
             }
             .menubar {
               .action-menu-trigger {
@@ -4765,6 +4837,7 @@ body.dir-rtl {
       }
     }
   }
+
   .header-menu {
     .input-group {
       display: none;
