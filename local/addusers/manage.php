@@ -92,12 +92,12 @@ if ($uform->is_cancelled()) {
         $uform->display();
     } else {
         $groups = groups_get_my_groups();
-        $courseID = 0;
 
-        foreach ($groups as $group) {
-            if ($group->id == $fromform->group) {
-                $courseID = $group->courseid;
-            }
+        $groupID = (int) $fromform->group;
+        $courseID = isset($groups[$groupID]) ? (int) $groups[$groupID]->courseid : 0;
+
+        if ($courseID === 0) {
+            throw new moodle_exception('invalidgroup', 'local_addusers');
         }
 
         // Generate users data
@@ -118,7 +118,7 @@ if ($uform->is_cancelled()) {
         }
 
         for ($i = 0; $i < (int) $fromform->studentsnumber; $i++) {
-            $username = 'g' . $groups[$fromform->group]->groupid . 'u' . ($userNumber + $i);
+            $username = 'g' . $groupID . 'u' . ($userNumber + $i);
             $plainPassword = clearString(generatePassword());
             $user = [
                 'username' => $username,

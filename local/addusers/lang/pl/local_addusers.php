@@ -28,6 +28,7 @@ $string['missingclass'] = 'Pominięto klasę';
 $string['missingstudentsnumber'] = 'Pominięto liczbę uczniów';
 $string['localuserheader'] = 'Dodaj uczniów';
 $string['localusertext'] = 'Formularz umożliwia dodanie nowych uczniów do systemu oraz przypisanie ich do klasy';
+$string['invalidgroup'] = 'Wybrana klasa jest niedostępna.';
 $string['formwascleared'] = 'Formularz został wyczyszczony!';
 $string['selectgroup'] = 'Proszę wybrać klasę!';
 $string['errornumberofstudents'] = 'Liczba uczniów musi być większa od zera!';

@@ -24,8 +24,9 @@
 
 require_once __DIR__ . '/../../config.php';
 require_once $CFG->dirroot . '/group/lib.php';
+require_once $CFG->dirroot . '/user/lib.php';
 
-global $USER, $PAGE;
+global $USER, $PAGE, $DB;
 
 require_login();
 
@@ -36,7 +37,7 @@ if (!isguestuser()) {
     $student = (object) ["id" => optional_param('id', '', PARAM_INT), 'exists' => false];
     $group = (object) ["id" => optional_param('group', '', PARAM_INT), 'access' => false];
     $course = (object) ["id" => optional_param('course', '', PARAM_INT), 'access' => false];
-    $password = optional_param('pass', '', PARAM_ALPHANUMEXT);
+    $password = optional_param('pass', '', PARAM_RAW);
     $nrdziennika = (int) optional_param('nr', '', PARAM_INT);
 
     if (($nrdziennika == '' or $nrdziennika == '0') and $password == '') {
@@ -72,8 +73,10 @@ if (!isguestuser()) {
                 if (!isset($students[$student->id])) {
                     echo '{"message": "Error: This student is not assigned to this group!", "error": true}';
                 } else {
+                    $student = $DB->get_record('user', ['id' => $student->id], '*', MUST_EXIST);
+                    profile_load_data($student);
+
                     if ($nrdziennika > 0) {
-                        // Save student data
                         $student->profile_field_nr_dziennika = $nrdziennika;
                         profile_save_data($student);
                     }
@@ -82,8 +85,9 @@ if (!isguestuser()) {
                         // Set the password.
                         update_internal_user_password($student, $password);
                     }
+
+                    echo '{"message": "Message: Data saved successfully!", "error": false}';
                 }
-                echo '{"message": "Message: Data saved successfully!", "error": false}';
             }
         }
     }

@@ -28,6 +28,7 @@ $string['missingclass'] = 'Missing class';
 $string['missingstudentsnumber'] = 'Missing number of students';
 $string['localuserheader'] = 'Add users';
 $string['localusertext'] = 'This form makes it possible to add a new users to the system and assign them to the class';
+$string['invalidgroup'] = 'The selected class is unavailable.';
 $string['formwascleared'] = 'Form was cleared!';
 $string['selectgroup'] = 'Please select the class!';
 $string['errornumberofstudents'] = 'Number of students has to be greater than zero!';
