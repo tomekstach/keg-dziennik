@@ -105,7 +105,9 @@ if (!isguestuser()) {
                 groups_assign_grouping($schoolID, $classID);
             }
 
-            enrol_try_internal_enrol($course, $coordinatorID, 9);
+            if (!enrol_try_internal_enrol($course, $coordinatorID, 9)) {
+                throw new Exception('Nie udało się zapisać koordynatora do kursu. Sprawdź, czy kurs ma aktywną metodę zapisów manualnych.');
+            }
 
             groups_add_member($classID, $coordinatorID);
         } catch (Exception $th) {
